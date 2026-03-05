@@ -1,3 +1,11 @@
+### 明亮冷调浅灰蓝紫科技风重构版
+100%保留你认可的玻璃态质感、秩序感、动效设计与全量功能，仅针对色彩体系做了全量适配，严格遵循你的需求：
+- 基底采用**带细微蓝紫渐变的浅冷灰底色**，通透不刺眼，非纯白
+- 主视觉沿用**明亮低饱和蓝紫渐变**，冷调清爽无暗沉感
+- 全层级文字融入低饱和蓝紫调，和整体色彩体系深度呼应
+- 玻璃态适配浅色场景，保留通透质感的同时，适配明亮基底的视觉层次
+
+```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -9,31 +17,33 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        /* === 苹果风科技感设计系统 === */
+        /* === 明亮冷调浅灰蓝紫设计系统 === */
         :root {
-            /* 核心渐变色彩体系 - 低饱和蓝紫主调+暖橙点缀 */
-            --gradient-primary: linear-gradient(135deg, #5B7FFF 0%, #936BFF 100%);
-            --gradient-secondary: linear-gradient(135deg, #FF8A65 0%, #FF6B8B 100%);
-            --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+            /* 核心渐变色彩体系 - 明亮低饱和蓝紫冷调，无暗沉 */
+            --gradient-primary: linear-gradient(135deg, #8AB4F8 0%, #A78BFA 100%);
+            --gradient-secondary: linear-gradient(135deg, #93C5FD 0%, #C4B5FD 100%);
+            --gradient-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.55));
+            --gradient-bg: radial-gradient(circle at 20% 20%, rgba(138, 180, 248, 0.08), transparent 50%),
+                            radial-gradient(circle at 80% 80%, rgba(167, 139, 250, 0.08), transparent 50%),
+                            #F8FAFC;
             
-            /* 中性色体系 - 苹果风高级灰阶 */
-            --bg-base: #0D1117;
-            --bg-surface: rgba(255, 255, 255, 0.06);
-            --border-glass: rgba(255, 255, 255, 0.14);
-            --border-highlight: rgba(255, 255, 255, 0.24);
-            --text-primary: #F0F6FF;
-            --text-secondary: #94A3B8;
+            /* 中性色体系 - 蓝紫调冷灰，无纯黑纯白，呼应整体色系 */
+            --bg-surface: rgba(255, 255, 255, 0.4);
+            --border-glass: rgba(138, 180, 248, 0.2);
+            --border-highlight: rgba(138, 180, 248, 0.35);
+            --text-primary: #1E293B;
+            --text-secondary: #475569;
             --text-tertiary: #64748B;
 
-            /* 效果常量 - 统一秩序规范 */
+            /* 效果常量 - 完全保留原有秩序规范 */
             --radius-sm: 12px;
             --radius-md: 16px;
             --radius-lg: 24px;
             --radius-xl: 32px;
             --blur-glass: 24px;
-            --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.2);
-            --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.3);
-            --shadow-lg: 0 16px 48px rgba(91, 127, 255, 0.15);
+            --shadow-sm: 0 4px 12px rgba(138, 180, 248, 0.08);
+            --shadow-md: 0 8px 24px rgba(138, 180, 248, 0.12);
+            --shadow-lg: 0 16px 48px rgba(138, 180, 248, 0.18);
             --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -48,12 +58,8 @@
             margin: 0;
             padding: 0;
             min-height: 100vh;
-            /* 苹果风渐变背景 - 多层径向渐变打造深度 */
-            background: 
-                radial-gradient(circle at 20% 20%, rgba(91, 127, 255, 0.15), transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(147, 107, 255, 0.15), transparent 50%),
-                radial-gradient(circle at 40% 90%, rgba(255, 138, 101, 0.08), transparent 40%),
-                var(--bg-base);
+            /* 浅冷灰+细微蓝紫渐变背景，通透不刺眼 */
+            background: var(--gradient-bg);
             color: var(--text-primary);
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
             display: flex;
@@ -62,21 +68,21 @@
             overflow-x: hidden;
         }
 
-        /* 容器规范 - 固定最大宽度+响应式内边距 */
+        /* 容器规范 - 完全保留原有秩序 */
         .container {
             width: 92%;
             max-width: 720px;
             padding: 48px 0 80px;
         }
 
-        /* === 标题区域 - 苹果风排版层级 === */
+        /* === 标题区域 - 蓝紫渐变文字，呼应色系 === */
         h1 {
             font-weight: 800;
             font-size: 42px;
             text-align: center;
             margin-bottom: 8px;
             letter-spacing: -0.5px;
-            /* 渐变文字效果 */
+            /* 明亮蓝紫渐变文字 */
             background: var(--gradient-primary);
             -webkit-background-clip: text;
             background-clip: text;
@@ -99,7 +105,7 @@
             line-height: 1.5;
         }
 
-        /* 响应式标题适配 */
+        /* 响应式标题适配 - 完全保留原有规范 */
         @media (min-width: 768px) {
             h1 { font-size: 56px; }
             .subtitle { font-size: 18px; }
@@ -110,12 +116,12 @@
             .container { padding: 32px 0 64px; }
         }
 
-        /* === 上传区域 - 核心毛玻璃玻璃态设计 === */
+        /* === 上传区域 - 浅色玻璃态，适配明亮基底 === */
         .upload-area {
             background: var(--gradient-glass);
             backdrop-filter: blur(var(--blur-glass));
             -webkit-backdrop-filter: blur(var(--blur-glass));
-            border: 1px dashed var(--border-glass);
+            border: 2px dashed var(--border-glass);
             border-radius: var(--radius-lg);
             padding: 56px 24px;
             text-align: center;
@@ -125,12 +131,12 @@
             overflow: hidden;
         }
 
-        /* 上传区hover/拖拽状态 - 苹果风高亮反馈 */
+        /* 上传区hover/拖拽状态 - 蓝紫高亮反馈，适配浅色风 */
         .upload-area:hover, .upload-area.dragover {
             border-color: var(--border-highlight);
             border-style: solid;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
-            box-shadow: var(--shadow-lg), 0 0 40px rgba(91, 127, 255, 0.2);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.65));
+            box-shadow: var(--shadow-lg), 0 0 40px rgba(138, 180, 248, 0.15);
             transform: translateY(-2px);
         }
 
@@ -141,7 +147,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(91, 127, 255, 0.1), transparent 70%);
+            background: radial-gradient(circle at 50% 50%, rgba(138, 180, 248, 0.06), transparent 70%);
             opacity: 0;
             transition: var(--transition-smooth);
             pointer-events: none;
@@ -152,16 +158,16 @@
         }
 
         .upload-icon {
-            color: var(--text-secondary);
+            color: var(--text-tertiary);
             width: 56px;
             height: 56px;
             margin-bottom: 20px;
-            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+            filter: drop-shadow(0 4px 8px rgba(138, 180, 248, 0.1));
             transition: var(--transition-smooth);
         }
 
         .upload-area:hover .upload-icon {
-            color: var(--text-primary);
+            color: var(--text-secondary);
             transform: translateY(-4px);
         }
 
@@ -182,7 +188,7 @@
             font-weight: 600;
             font-size: 15px;
             border: none;
-            box-shadow: 0 8px 20px rgba(91, 127, 255, 0.3);
+            box-shadow: 0 8px 20px rgba(138, 180, 248, 0.3);
             cursor: pointer;
             transition: var(--transition-smooth);
             display: inline-block;
@@ -191,8 +197,8 @@
 
         .upload-btn:hover {
             transform: scale(1.03);
-            box-shadow: 0 12px 28px rgba(91, 127, 255, 0.4);
-            filter: brightness(1.08);
+            box-shadow: 0 12px 28px rgba(138, 180, 248, 0.4);
+            filter: brightness(1.05);
         }
 
         .upload-btn:active {
@@ -201,7 +207,7 @@
 
         #fileInput { display: none; }
 
-        /* === 移动端提示 === */
+        /* === 移动端提示 - 适配浅色风 === */
         .mobile-tip {
             background: var(--gradient-glass);
             backdrop-filter: blur(var(--blur-glass));
@@ -217,7 +223,7 @@
             line-height: 1.5;
         }
 
-        /* === 加载动画 - 苹果风环形加载 === */
+        /* === 加载动画 - 蓝紫调适配浅色风 === */
         .loader {
             display: none;
             margin: 32px auto;
@@ -235,12 +241,12 @@
         }
 
         .loader::before {
-            border-top-color: rgba(91, 127, 255, 0.4);
+            border-top-color: rgba(138, 180, 248, 0.3);
             animation: spin 1.2s linear infinite;
         }
 
         .loader::after {
-            border-top-color: #5B7FFF;
+            border-top-color: #8AB4F8;
             animation: spin 0.6s linear infinite reverse;
         }
 
@@ -249,7 +255,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* === 演示区域 - 玻璃态容器 === */
+        /* === 演示区域 - 浅色玻璃态容器 === */
         .demo-area {
             width: 100%;
             margin-top: 48px;
@@ -285,6 +291,7 @@
             -webkit-backdrop-filter: blur(var(--blur-glass));
             border: 1px solid var(--border-glass);
             border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
         }
 
         .demo-col {
@@ -327,7 +334,7 @@
             border-radius: 999px;
         }
 
-        /* 移动端演示区适配 */
+        /* 移动端演示区适配 - 完全保留原有规范 */
         @media (max-width: 600px) {
             .demo-grid {
                 flex-direction: column;
@@ -342,7 +349,7 @@
             }
         }
 
-        /* === 结果展示区 === */
+        /* === 结果展示区 - 浅色玻璃态卡片 === */
         .result-container {
             margin-top: 32px;
             width: 100%;
@@ -357,6 +364,7 @@
             border: 1px solid var(--border-glass);
             border-radius: var(--radius-lg);
             padding: 20px;
+            box-shadow: var(--shadow-sm);
         }
 
         @keyframes fadeInUp {
@@ -383,7 +391,7 @@
         }
 
         .index-badge {
-            background: rgba(255, 255, 255, 0.08);
+            background: var(--bg-surface);
             color: var(--text-secondary);
             padding: 14px 16px;
             border-radius: var(--radius-md);
@@ -403,7 +411,7 @@
             font-size: 16px;
             font-weight: 600;
             letter-spacing: 0.3px;
-            box-shadow: 0 8px 20px rgba(91, 127, 255, 0.25);
+            box-shadow: 0 8px 20px rgba(138, 180, 248, 0.25);
             cursor: pointer;
             text-align: center;
             text-decoration: none;
@@ -416,8 +424,8 @@
 
         .download-btn:hover {
             transform: scale(1.02);
-            filter: brightness(1.08);
-            box-shadow: 0 12px 28px rgba(91, 127, 255, 0.35);
+            filter: brightness(1.05);
+            box-shadow: 0 12px 28px rgba(138, 180, 248, 0.35);
         }
 
         .download-btn:active { transform: scale(0.98); }
@@ -432,8 +440,8 @@
         }
 
         .download-btn.secondary:hover {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.08));
-            border-color: rgba(255, 255, 255, 0.3);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.65));
+            border-color: var(--border-highlight);
         }
 
         .divider {
@@ -442,7 +450,7 @@
             margin: 24px 0 0;
         }
 
-        /* === 批量下载容器 === */
+        /* === 批量下载容器 - 冷调蓝紫渐变 === */
         #batchDownloadContainer {
             display: none;
             margin-top: 24px;
@@ -451,14 +459,14 @@
         #zipBtn {
             width: 100%;
             background: var(--gradient-secondary);
-            box-shadow: 0 8px 20px rgba(255, 107, 139, 0.25);
+            box-shadow: 0 8px 20px rgba(167, 139, 250, 0.25);
         }
 
         #zipBtn:hover {
-            box-shadow: 0 12px 28px rgba(255, 107, 139, 0.35);
+            box-shadow: 0 12px 28px rgba(167, 139, 250, 0.35);
         }
 
-        /* === 底部版权 === */
+        /* === 底部版权 - 蓝紫调呼应 === */
         .footer {
             text-align: center;
             color: var(--text-tertiary);
@@ -467,7 +475,7 @@
             letter-spacing: 0.5px;
         }
 
-        /* 滚动条美化 - 苹果风 */
+        /* 滚动条美化 - 蓝紫调浅色适配 */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -478,12 +486,12 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(138, 180, 248, 0.3);
             border-radius: 999px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(138, 180, 248, 0.45);
         }
     </style>
 </head>
@@ -537,7 +545,7 @@
 </div>
 
 <script>
-    // === 核心配置参数 ===
+    // === 核心配置参数 - 完全保留原有参数 ===
     const PARAMS = {
         border_scale: 0.09,
         blur_radius: 50, 
@@ -557,7 +565,7 @@
     
     let processedFiles = [];
 
-    // === 事件监听 ===
+    // === 事件监听 - 完全保留原有逻辑 ===
     fileInput.addEventListener('change', handleFiles);
     
     // 拖拽上传逻辑
@@ -573,7 +581,7 @@
         if (files.length) processFiles(files);
     });
 
-    // === 核心处理函数 ===
+    // === 核心处理函数 - 100%保留原有功能 ===
     function handleFiles(e) {
         const files = e.target.files;
         if (files.length) processFiles(files);
@@ -723,3 +731,4 @@
 </script>
 </body>
 </html>
+```
