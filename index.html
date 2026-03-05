@@ -387,23 +387,14 @@
                 ctx.drawImage(img, -50, -50, newW + 100, newH + 100);
                 ctx.restore();
 
-                // 2. 绘制阴影
-                // Python逻辑是：黑框 -> 模糊 -> 0.2透明度
-                const padding = PARAMS.shadow_blur * 3;
-                const shadowX = borderWidth - padding; // offset为0，所以居中于border内
-                const shadowY = borderWidth - padding;
-                const shadowW = origW + (2 * padding);
-                const shadowH = origH + (2 * padding);
-
-                // 在 Canvas 中，我们直接用 shadowBlur 属性或画一个模糊的半透明黑框
-                // 方案：画一个圆角矩形，设置 filter blur
+                // 2. 绘制阴影 (紧凑贴合版)
                 ctx.save();
                 ctx.globalAlpha = PARAMS.shadow_opacity;
                 ctx.filter = `blur(${PARAMS.shadow_blur}px)`;
                 ctx.fillStyle = "#000000";
                 
-                // 绘制扩大的圆角矩形 (Shadow Layer)
-                roundRect(ctx, shadowX, shadowY, shadowW, shadowH, PARAMS.corner_radius);
+                // 直接使用和原图完全一样的尺寸绘制阴影，不再向外扩张
+                roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius);
                 ctx.fill();
                 ctx.restore();
 
