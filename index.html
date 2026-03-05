@@ -264,33 +264,49 @@
         }
         .demo-grid {
             display: flex;
-            gap: 30px; /* 稍微拉开一点两张图的间距 */
+            gap: 30px; /* 稍微缩小一点间距 */
             justify-content: center;
-            align-items: flex-end; /* 让底部的文字标签始终在一条水平线上 */
+            /* 🔑 保持底部分割线对齐，看着更高级 */
+            align-items: flex-end; 
         }
         .demo-col {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
+        /* 🔑 新增：设定左侧格子更窄 (约占 44%) */
+        .demo-col:first-child {
+            flex: 0 0 44%; 
+        }
+        /* 🔑 新增：设定右侧格子更宽 (约占 54%，实现稍微放大的效果) */
+        .demo-col:last-child {
+            flex: 0 0 54%; 
+        }
         .demo-img {
-            height: 350px; /* 🔑 关键：强制两张图高度一模一样，实现完美的上下对齐！ */
-            width: auto;   /* 宽度根据原本的比例自然伸缩，不拉伸、不留白 */
+            /* 🔑 删除了固定高度限制 */
+            /* height: 350px !important; */
+            
+            /* 🔑 宽度铺满各自的格子，根据胖瘦自动伸缩，自然贴合不留白 */
+            width: 100% !important;   
+            height: auto !important;
+            
             border: 8px solid #FFFFFF;
             border-radius: 6px;
             box-shadow: 0 10px 25px rgba(2, 16, 36, 0.08);
-            pointer-events: none;
+            pointer-events: none; 
+            box-sizing: border-box; /* 确保白边不撑破格子 */
         }
         .demo-caption {
             font-size: 12px;
             color: var(--subtitle-color);
-            margin-top: 30px;
+            margin-top: 20px;
             opacity: 0.8;
         }
-        /* 手机端竖向排列自动适配 */
+        /* 手机端竖向排列自动适配 (手机上依然等宽更好看) */
         @media (max-width: 600px) {
-            .demo-grid { flex-direction: column; align-items: center; }
-            .demo-img { height: auto; width: 100%; max-width: 320px; }
+            .demo-grid { flex-direction: column; align-items: center; gap: 20px; }
+            .demo-col:first-child, .demo-col:last-child { flex: 0 0 auto; width: 100%; max-width: 320px; }
+            .demo-img { height: auto !important; width: 100% !important; }
         }
     </style>
 </head>
