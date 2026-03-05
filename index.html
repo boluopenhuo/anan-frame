@@ -8,51 +8,50 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        /* === 核心变量：自适应深浅色高级蓝 === */
+        /* === 核心变量：强化毛玻璃与背景对比 === */
         :root {
-            /* 浅色模式 (冰川蓝) */
-            --bg-color: #F5F7FA;
+            /* 浅色模式 */
+            --bg-color: #EBF1F6; /* 稍微加深一点点底色，让白色玻璃更明显 */
             --text-main: #1D1D1F;
             --text-muted: #86868B;
-            --glass-bg: rgba(255, 255, 255, 0.6);
-            --glass-border: rgba(255, 255, 255, 0.8);
-            --glass-shadow: 0 20px 40px rgba(0, 40, 100, 0.05);
+            
+            /* 🔑 玻璃质感关键调整：降低背景透明度，增强模糊和边框高光 */
+            --glass-bg: rgba(255, 255, 255, 0.25); 
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 30, 80, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+            
             --accent-color: #0066CC;
-            --orb-1: #D0E4FF;
-            --orb-2: #E1DEFF;
-            --shimmer-bg: rgba(255, 255, 255, 0.5);
-            --shimmer-highlight: rgba(255, 255, 255, 0.9);
+            /* 让光晕稍微鲜艳一点，才有东西被折射 */
+            --orb-1: #A6C1EE; 
+            --orb-2: #FBC2EB;
+            
+            --shimmer-bg: rgba(255, 255, 255, 0.3);
+            --shimmer-highlight: rgba(255, 255, 255, 0.8);
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                /* 深色模式 (午夜蓝) */
-                --bg-color: #0A0A0C;
+                /* 深色模式 */
+                --bg-color: #090A0F;
                 --text-main: #F5F5F7;
                 --text-muted: #A1A1A6;
-                --glass-bg: rgba(20, 20, 25, 0.6);
+                --glass-bg: rgba(20, 20, 30, 0.3);
                 --glass-border: rgba(255, 255, 255, 0.1);
-                --glass-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+                --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
                 --accent-color: #2997FF;
                 --orb-1: #0A2458;
                 --orb-2: #1D1845;
-                --shimmer-bg: rgba(30, 30, 35, 0.5);
-                --shimmer-highlight: rgba(255, 255, 255, 0.05);
+                --shimmer-bg: rgba(30, 30, 40, 0.4);
+                --shimmer-highlight: rgba(255, 255, 255, 0.1);
             }
         }
 
         /* === 全局重置 === */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -64,261 +63,113 @@
 
         /* === 巨型弥散流光背景 === */
         .aurora-bg {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: -1;
-            overflow: hidden;
-            pointer-events: none;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1; overflow: hidden; pointer-events: none;
         }
         .orb {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.8;
+            position: absolute; border-radius: 50%;
+            filter: blur(90px); /* 加大模糊，让光更柔和 */
+            opacity: 0.7;
             animation: float 20s infinite alternate ease-in-out;
         }
+        /* 调整光晕位置，确保它们经过屏幕中央的毛玻璃下方 */
         .orb-1 {
-            width: 60vw; height: 60vw;
-            background: var(--orb-1);
-            top: -10%; left: -10%;
+            width: 70vw; height: 70vw; background: var(--orb-1);
+            top: -20%; left: -10%;
         }
         .orb-2 {
-            width: 50vw; height: 50vw;
-            background: var(--orb-2);
-            bottom: -10%; right: -10%;
-            animation-delay: -5s;
+            width: 60vw; height: 60vw; background: var(--orb-2);
+            bottom: -20%; right: -10%; animation-delay: -5s;
         }
         @keyframes float {
             0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(10vw, 10vh) scale(1.1); }
+            100% { transform: translate(15vw, 15vh) scale(1.1); }
         }
 
         /* === 主容器 === */
-        .container {
-            width: 90%;
-            max-width: 720px;
-            padding: 60px 0 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 1;
-        }
-
-        /* === 标题排版 === */
-        h1 {
-            font-size: 42px;
-            font-weight: 700;
-            letter-spacing: -0.02em;
-            margin-bottom: 12px;
-            text-align: center;
-        }
-        .subtitle {
-            font-size: 16px;
-            color: var(--text-muted);
-            letter-spacing: 0.01em;
-            margin-bottom: 50px;
-            text-align: center;
-            font-weight: 400;
-        }
+        .container { width: 90%; max-width: 720px; padding: 60px 0 40px; display: flex; flex-direction: column; align-items: center; z-index: 1; }
+        h1 { font-size: 42px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px; text-align: center; }
+        .subtitle { font-size: 16px; color: var(--text-muted); letter-spacing: 0.01em; margin-bottom: 50px; text-align: center; font-weight: 400; }
 
         /* === 毛玻璃上传区 === */
         .upload-area {
             width: 100%;
             background: var(--glass-bg);
+            /* 🔑 这里是毛玻璃生效的核心 */
             backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px); 
             border: 1px solid var(--glass-border);
             border-radius: 24px;
             padding: 60px 20px;
             text-align: center;
             cursor: pointer;
             box-shadow: var(--glass-shadow);
-            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease, background 0.3s ease;
+            display: flex; flex-direction: column; align-items: center; position: relative; overflow: hidden;
         }
         .upload-area:hover, .upload-area.dragover {
             transform: scale(0.98);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            background: rgba(255, 255, 255, 0.35); /* 悬浮时变白一点点 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
-        .upload-icon {
-            width: 48px; height: 48px;
-            color: var(--accent-color);
-            margin-bottom: 16px;
-            opacity: 0.9;
-        }
-        .upload-text {
-            font-size: 16px;
-            font-weight: 500;
-            margin-bottom: 8px;
-        }
-        .upload-hint {
-            font-size: 13px;
-            color: var(--text-muted);
-        }
+        .upload-icon { width: 48px; height: 48px; color: var(--accent-color); margin-bottom: 16px; opacity: 0.9; }
+        .upload-text { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+        .upload-hint { font-size: 13px; color: var(--text-muted); }
         #fileInput { display: none; }
 
         /* === 极简并排演示区 === */
-        .demo-area {
-            width: 100%;
-            margin-top: 60px;
-            display: flex;
-            gap: 40px;
-            justify-content: center;
-        }
-        .demo-col {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .demo-area { width: 100%; margin-top: 60px; display: flex; gap: 40px; justify-content: center; }
+        .demo-col { flex: 1; display: flex; flex-direction: column; align-items: center; }
         .demo-img-wrapper {
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--glass-shadow);
+            width: 100%; border-radius: 12px; overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-            transform-style: preserve-3d;
-            will-change: transform;
+            transform-style: preserve-3d; will-change: transform;
         }
-        .demo-img {
-            width: 100%;
-            height: auto;
-            display: block;
-            pointer-events: none; /* 防止图片自带的拖拽影响 3D 效果 */
-        }
-        .micro-label {
-            margin-top: 16px;
-            font-size: 11px;
-            letter-spacing: 0.1em;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-weight: 600;
-        }
+        .demo-img { width: 100%; height: auto; display: block; pointer-events: none; }
+        .micro-label { margin-top: 16px; font-size: 11px; letter-spacing: 0.1em; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
 
         /* === 骨架屏加载区 === */
-        .shimmer-container {
-            display: none;
-            width: 100%;
-            margin-top: 40px;
-        }
+        .shimmer-container { display: none; width: 100%; margin-top: 40px; }
         .shimmer-card {
-            width: 100%;
-            aspect-ratio: 4/5;
-            background: var(--shimmer-bg);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            position: relative;
-            overflow: hidden;
-            border: 1px solid var(--glass-border);
+            width: 100%; aspect-ratio: 4/5; background: var(--shimmer-bg); border-radius: 20px;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            position: relative; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
         }
         .shimmer-card::after {
-            content: "";
-            position: absolute;
-            top: 0; left: -100%; width: 50%; height: 100%;
+            content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
             background: linear-gradient(90deg, transparent, var(--shimmer-highlight), transparent);
             animation: shimmer 1.5s infinite;
         }
-        @keyframes shimmer {
-            100% { left: 200%; }
-        }
+        @keyframes shimmer { 100% { left: 200%; } }
 
         /* === 结果展示区 === */
-        .result-container {
-            width: 100%;
-            margin-top: 40px;
-            display: flex;
-            flex-direction: column;
-            gap: 40px;
-        }
+        .result-container { width: 100%; margin-top: 40px; display: flex; flex-direction: column; gap: 40px; }
         .result-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(24px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 24px;
-            box-shadow: var(--glass-shadow);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background: var(--glass-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border); border-radius: 24px; padding: 24px;
+            box-shadow: var(--glass-shadow); display: flex; flex-direction: column; align-items: center;
             animation: fadeIn 0.6s cubic-bezier(0.25, 1, 0.5, 1);
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .result-img-wrapper {
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 24px;
-            transform-style: preserve-3d;
-        }
-        .result-img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        .result-footer {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 8px;
-        }
-        .result-index {
-            font-size: 13px;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-        .download-link {
-            color: var(--accent-color);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: opacity 0.2s;
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .result-img-wrapper { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 24px; transform-style: preserve-3d; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .result-img { width: 100%; height: auto; display: block; }
+        .result-footer { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 8px; }
+        .result-index { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+        .download-link { color: var(--accent-color); text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s; }
         .download-link:hover { opacity: 0.8; }
 
-        /* 打包下载按钮 */
         .batch-download {
-            margin-top: 20px;
-            width: 100%;
-            padding: 16px;
-            background: transparent;
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            color: var(--text-main);
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            transition: all 0.2s;
-            display: none;
+            margin-top: 20px; width: 100%; padding: 16px; background: var(--glass-bg);
+            border: 1px solid var(--glass-border); border-radius: 16px; color: var(--text-main);
+            font-size: 15px; font-weight: 500; cursor: pointer;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            box-shadow: var(--glass-shadow); transition: all 0.2s; display: none;
         }
-        .batch-download:hover {
-            background: var(--glass-bg);
-            border-color: var(--accent-color);
-        }
+        .batch-download:hover { transform: translateY(-2px); border-color: var(--accent-color); }
+        .footer { margin-top: 60px; font-size: 12px; color: var(--text-muted); letter-spacing: 0.05em; }
 
-        .footer {
-            margin-top: 60px;
-            font-size: 12px;
-            color: var(--text-muted);
-            letter-spacing: 0.05em;
-        }
-
-        /* 响应式 */
-        @media (max-width: 600px) {
-            .demo-area { flex-direction: column; gap: 30px; }
-            h1 { font-size: 32px; }
-        }
+        @media (max-width: 600px) { .demo-area { flex-direction: column; gap: 30px; } h1 { font-size: 32px; } }
     </style>
 </head>
 <body>
@@ -344,13 +195,13 @@
     <div class="demo-area" id="demoArea">
         <div class="demo-col">
             <div class="demo-img-wrapper tilt-card">
-                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500' style='background:%23e5e7eb'%3E%3C/svg%3E" alt="Original" class="demo-img">
+                <img src="demo_original.jpg" alt="Original" class="demo-img">
             </div>
             <div class="micro-label">Original</div>
         </div>
         <div class="demo-col">
             <div class="demo-img-wrapper tilt-card">
-                 <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500' style='background:%23d1d5db; border:20px solid white'%3E%3C/svg%3E" alt="Processed" class="demo-img">
+                 <img src="demo_processed.png" alt="Processed" class="demo-img">
             </div>
             <div class="micro-label">Processed</div>
         </div>
@@ -368,7 +219,6 @@
 </div>
 
 <script>
-    // === 3D 倾斜交互逻辑 ===
     function initTiltEffect() {
         const cards = document.querySelectorAll('.tilt-card');
         cards.forEach(card => {
@@ -378,7 +228,7 @@
                 const y = e.clientY - rect.top;
                 const centerX = rect.width / 2;
                 const centerY = rect.height / 2;
-                const rotateX = ((y - centerY) / centerY) * -8; // 最大倾斜 8 度
+                const rotateX = ((y - centerY) / centerY) * -8; 
                 const rotateY = ((x - centerX) / centerX) * 8;
                 card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
             });
@@ -387,10 +237,8 @@
             });
         });
     }
-    // 初始化演示区的 tilt 效果
     initTiltEffect();
 
-    // === 核心配置与处理逻辑 ===
     const PARAMS = { border_scale: 0.09, blur_radius: 50, corner_radius: 90, shadow_blur: 50, shadow_opacity: 0.4 };
     
     const fileInput = document.getElementById('fileInput');
@@ -403,28 +251,20 @@
 
     fileInput.addEventListener('change', handleFiles);
     
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-    });
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
     dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
     dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
+        e.preventDefault(); dropZone.classList.remove('dragover');
         if (e.dataTransfer.files.length) processFiles(e.dataTransfer.files);
     });
 
-    function handleFiles(e) {
-        if (e.target.files.length) processFiles(e.target.files);
-    }
+    function handleFiles(e) { if (e.target.files.length) processFiles(e.target.files); }
 
     async function processFiles(files) {
-        // 隐藏演示区，显示骨架屏
         if (demoArea) demoArea.style.display = 'none';
         resultContainer.innerHTML = '';
         processedFiles = [];
         zipBtn.style.display = 'none';
-        
         loader.style.display = 'block';
 
         for (let i = 0; i < files.length; i++) {
@@ -440,14 +280,10 @@
                 console.error("处理出错:", err);
             }
         }
-
         loader.style.display = 'none';
-        if (processedFiles.length > 1) {
-            zipBtn.style.display = 'block';
-        }
+        if (processedFiles.length > 1) zipBtn.style.display = 'block';
     }
 
-    // 图片处理引擎 (保留你原本强大的 Canvas 逻辑，保持不变)
     function processSingleImage(file) {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -461,28 +297,9 @@
 
                 canvas.width = newW; canvas.height = newH;
 
-                // 模糊底图
-                ctx.save();
-                ctx.filter = `blur(${PARAMS.blur_radius}px)`;
-                ctx.drawImage(img, -50, -50, newW + 100, newH + 100);
-                ctx.restore();
-
-                // 阴影
-                ctx.save();
-                ctx.globalAlpha = PARAMS.shadow_opacity;
-                ctx.filter = `blur(${PARAMS.shadow_blur}px)`;
-                ctx.fillStyle = "#000000";
-                roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius);
-                ctx.fill();
-                ctx.restore();
-
-                // 原图
-                ctx.save();
-                ctx.beginPath();
-                roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius);
-                ctx.clip(); 
-                ctx.drawImage(img, borderWidth, borderWidth, origW, origH);
-                ctx.restore();
+                ctx.save(); ctx.filter = `blur(${PARAMS.blur_radius}px)`; ctx.drawImage(img, -50, -50, newW + 100, newH + 100); ctx.restore();
+                ctx.save(); ctx.globalAlpha = PARAMS.shadow_opacity; ctx.filter = `blur(${PARAMS.shadow_blur}px)`; ctx.fillStyle = "#000000"; roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius); ctx.fill(); ctx.restore();
+                ctx.save(); ctx.beginPath(); roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius); ctx.clip(); ctx.drawImage(img, borderWidth, borderWidth, origW, origH); ctx.restore();
 
                 resolve(canvas.toDataURL('image/png'));
             };
@@ -492,18 +309,10 @@
     }
 
     function roundRect(ctx, x, y, w, h, r) {
-        if (w < 2 * r) r = w / 2;
-        if (h < 2 * r) r = h / 2;
-        ctx.beginPath();
-        ctx.moveTo(x + r, y);
-        ctx.arcTo(x + w, y, x + w, y + h, r);
-        ctx.arcTo(x + w, y + h, x, y + h, r);
-        ctx.arcTo(x, y + h, x, y, r);
-        ctx.arcTo(x, y, x + w, y, r);
-        ctx.closePath();
+        if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2;
+        ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
     }
 
-    // 创建高级结果卡片
     function createResultCard(dataUrl, name, index, total) {
         const card = document.createElement('div');
         card.className = 'result-card';
@@ -522,20 +331,14 @@
             </div>
         `;
         resultContainer.appendChild(card);
-        // 为新生成的卡片绑定 3D 效果
         initTiltEffect();
     }
 
-    // 打包下载
     zipBtn.addEventListener('click', () => {
         if (!window.JSZip) return alert("JSZip loading failed. Please refresh.");
         const zip = new JSZip();
-        processedFiles.forEach(file => {
-            zip.file(file.name, file.data.split(',')[1], {base64: true});
-        });
-        zip.generateAsync({type:"blob"}).then(content => {
-            saveAs(content, "Gallery_Frames.zip");
-        });
+        processedFiles.forEach(file => { zip.file(file.name, file.data.split(',')[1], {base64: true}); });
+        zip.generateAsync({type:"blob"}).then(content => { saveAs(content, "Gallery_Frames.zip"); });
     });
 </script>
 </body>
