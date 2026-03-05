@@ -77,56 +77,54 @@
         }
         .subtitle { font-size: 15px; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 50px; text-align: center; font-weight: 500; text-transform: uppercase; }
 
-        /* === A+B 结合的顶级上传组件 === */
-        @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
-        @keyframes spin { to { --angle: 360deg; } }
+        /* === A+B 结合的顶级上传组件 (连续液态流光版) === */
+        @keyframes spin { 100% { transform: rotate(360deg); } }
         
         .upload-area {
             width: 100%; max-width: 720px;
-            background: var(--glass-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            /* 去掉了原有的 background 和 border，交由伪元素处理，以达到完美贴合 */
             border-radius: 24px; padding: 60px 20px; text-align: center; cursor: pointer;
             box-shadow: var(--glass-shadow);
-            position: relative; overflow: hidden;
+            position: relative; 
+            overflow: hidden; /* 🔑 关键：切掉外部多余的光晕，只留边框 */
             transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-            /* 保证内部内容层级高于背景特效 */
             z-index: 1;
         }
 
-        /* A: 顶级流光溪流 (渐变 + 虚线 + 全框流转) */
+        /* 🔑 新增：内部毛玻璃遮罩。盖住中心，只漏出边缘 1.5px 形成“框” */
+        .upload-area::after {
+            content: ''; position: absolute; 
+            inset: 1.5px; /* 这里决定了流光边框的粗细 */
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border-radius: 22.5px; /* 比外层 24px 稍微小一点，圆角才能完美嵌套 */
+            z-index: -1; pointer-events: none;
+        }
+
+        /* 🔑 A: 常态全框连续流光 (底层旋转巨型渐变圆盘) */
         .upload-area::before {
-            content: ''; position: absolute; inset: 0;
-            border-radius: 24px; padding: 1.5px; /* 精细边框 */
-            
-            /* 🔑 核心 1：全框覆盖的蓝紫色平滑渐变溪流 */
-            background: conic-gradient(from var(--angle), #00E5FF 0%, #2979FF 25%, #D500F9 50%, #2979FF 75%, #00E5FF 100%);
-            
-            /* 🔑 核心 2：使用 Mask 创建极其细腻的虚线图案。
-               repeating-conic-gradient 创建径向虚线，然后与实心 Mask 混合，实现全框流转的虚线效果。*/
-            -webkit-mask: 
-                repeating-conic-gradient(#fff 0deg 0.8deg, transparent 0.8deg 1.6deg), /* 虚线密度 */
-                linear-gradient(#fff 0 0) content-box, 
-                linear-gradient(#fff 0 0);
-            -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude;
-            
-            /* 🔑 核心 3：稍微调慢动画，让它看起来更优雅克制，像能量流动 */
-            animation: spin 6s linear infinite; 
-            
-            opacity: 0.7; transition: opacity 0.4s;
+            content: ''; position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            /* 这种透明到蓝紫的过渡，会形成一道极其高级的“扫描光束”感 */
+            background: conic-gradient(
+                transparent 0%, #00E5FF 20%, #D500F9 45%, #2979FF 60%, transparent 80%
+            );
+            animation: spin 5s linear infinite; /* 原生 transform 动画，所有浏览器都极其丝滑 */
+            opacity: 0.8; transition: opacity 0.4s;
             z-index: -2; pointer-events: none;
-            box-shadow: inset 0 0 10px rgba(0, 102, 204, 0.15); /* 增加内发光，加强景深 */
         }
 
         /* B: 磁吸聚光灯 (默认隐藏，悬浮显示) */
         .spotlight {
-            position: absolute; inset: 0; pointer-events: none; z-index: -1;
+            position: absolute; inset: 0; pointer-events: none; z-index: 0;
             background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), var(--accent-glow) 0%, transparent 40%);
             opacity: 0; transition: opacity 0.3s;
         }
         
-        /* 交互逻辑：悬浮时 A 消失，B 亮起 */
+        /* 交互逻辑：悬浮时 A(流光)消失，B(磁吸灯)亮起 */
         .upload-area:hover::before { opacity: 0; }
         .upload-area:hover .spotlight { opacity: 1; }
-        .upload-area:hover { transform: translateY(-2px); border-color: transparent; }
+        .upload-area:hover { transform: translateY(-2px); }
 
         /* 点击水波纹 */
         .ripple {
@@ -139,6 +137,7 @@
             to { transform: scale(4); opacity: 0; }
         }
 
+        /* 提高层级，防止被遮罩挡住 */
         .upload-icon { width: 48px; height: 48px; color: var(--accent-color); margin-bottom: 16px; opacity: 0.9; position: relative; z-index: 2;}
         .upload-text { font-size: 16px; font-weight: 500; margin-bottom: 8px; position: relative; z-index: 2;}
         .upload-hint { font-size: 13px; color: var(--text-muted); position: relative; z-index: 2;}
