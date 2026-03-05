@@ -92,16 +92,28 @@
             z-index: 1;
         }
 
-        /* A: 常态环绕流光 (用 mask 实现只有边框发光) */
+        /* A: 顶级流光溪流 (渐变 + 虚线 + 全框流转) */
         .upload-area::before {
             content: ''; position: absolute; inset: 0;
-            border-radius: 24px; padding: 2px; /* 控制边框粗细 */
-            background: conic-gradient(from var(--angle), transparent 60%, var(--accent-color) 100%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor; mask-composite: exclude;
-            animation: spin 4s linear infinite;
-            opacity: 0.8; transition: opacity 0.4s;
+            border-radius: 24px; padding: 1.5px; /* 精细边框 */
+            
+            /* 🔑 核心 1：全框覆盖的蓝紫色平滑渐变溪流 */
+            background: conic-gradient(from var(--angle), #00E5FF 0%, #2979FF 25%, #D500F9 50%, #2979FF 75%, #00E5FF 100%);
+            
+            /* 🔑 核心 2：使用 Mask 创建极其细腻的虚线图案。
+               repeating-conic-gradient 创建径向虚线，然后与实心 Mask 混合，实现全框流转的虚线效果。*/
+            -webkit-mask: 
+                repeating-conic-gradient(#fff 0deg 0.8deg, transparent 0.8deg 1.6deg), /* 虚线密度 */
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: source-in, xor; mask-composite: intersect, exclude;
+            
+            /* 🔑 核心 3：稍微调慢动画，让它看起来更优雅克制，像能量流动 */
+            animation: spin 6s linear infinite; 
+            
+            opacity: 0.7; transition: opacity 0.4s;
             z-index: -2; pointer-events: none;
+            box-shadow: inset 0 0 10px rgba(0, 102, 204, 0.15); /* 增加内发光，加强景深 */
         }
 
         /* B: 磁吸聚光灯 (默认隐藏，悬浮显示) */
