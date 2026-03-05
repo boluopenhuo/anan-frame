@@ -44,7 +44,7 @@
         h1 {
             font-weight: 900;
             color: var(--title-color);
-            font-size: 36px; /* 手机端稍微调小一点适配 */
+            font-size: 36px;
             text-align: center;
             margin-bottom: 5px;
             letter-spacing: -1px;
@@ -123,10 +123,7 @@
             display: inline-block;
         }
 
-        /* 隐藏真实的文件输入框 */
-        #fileInput {
-            display: none;
-        }
+        #fileInput { display: none; }
 
         /* 结果展示区 */
         .result-container {
@@ -191,9 +188,7 @@
             gap: 8px;
         }
 
-        .download-btn:active {
-            transform: scale(0.98);
-        }
+        .download-btn:active { transform: scale(0.98); }
 
         .download-btn.secondary {
             background: #FFFFFF;
@@ -240,8 +235,9 @@
             text-align: center;
             margin-bottom: 20px;
             border: 1px solid var(--label-bg);
-            display: none; /* JS控制显示 */
+            display: none;
         }
+
         /* === 演示区样式 === */
         .demo-area {
             width: 100%;
@@ -280,7 +276,7 @@
             border: 8px solid #FFFFFF;
             border-radius: 6px;
             box-shadow: 0 10px 25px rgba(2, 16, 36, 0.08);
-            pointer-events: none; /* 防止用户误点下载 */
+            pointer-events: none;
         }
         .demo-caption {
             font-size: 12px;
@@ -311,8 +307,7 @@
 
     <div class="loader" id="loader"></div>
 
-    <div class="result-container" id="resultContainer">
-        <div id="demoArea" class="demo-area">
+    <div id="demoArea" class="demo-area">
         <div class="demo-title">✦ 效果演示 ✦</div>
         <div class="demo-grid">
             <div class="demo-col">
@@ -326,6 +321,8 @@
         </div>
         <div class="demo-caption">上传照片，即刻生成同款画廊级质感</div>
     </div>
+
+    <div class="result-container" id="resultContainer">
         </div>
     
     <div id="batchDownloadContainer" style="display:none; margin-top: 20px;">
@@ -338,10 +335,10 @@
 </div>
 
 <script>
-    // === 配置参数 (与 Python 版保持一致) ===
+    // === 配置参数 ===
     const PARAMS = {
         border_scale: 0.09,
-        blur_radius: 50, // Canvas的Blur和PIL不一样，50px roughly equals PIL 100
+        blur_radius: 50, 
         corner_radius: 90, 
         shadow_blur: 50,
         shadow_opacity: 0.4
@@ -354,13 +351,10 @@
     const batchDownloadContainer = document.getElementById('batchDownloadContainer');
     const zipBtn = document.getElementById('zipBtn');
     
-    // 存储处理后的数据以便打包
     let processedFiles = [];
 
-    // === 事件监听 ===
     fileInput.addEventListener('change', handleFiles);
     
-    // 拖拽支持
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.classList.add('dragover');
@@ -378,37 +372,33 @@
         if (files.length) processFiles(files);
     }
 
-    // === 核心处理流程 ===
     async function processFiles(files) {
-        // 清空旧结果
+        // 第一步：隐藏演示区
+        const demoArea = document.getElementById('demoArea');
+        if (demoArea) {
+            demoArea.style.display = 'none';
+        }
+
+        // 第二步：清空旧结果并准备加载
         resultContainer.innerHTML = '';
         processedFiles = [];
         batchDownloadContainer.style.display = 'none';
         loader.style.display = 'block';
-
-        // 👇 加上这一行：当开始处理图片时，隐藏效果演示区
-        document.getElementById('demoArea').style.display = 'none';
         
-        // 显示移动端提示
         const tip = document.createElement('div');
         tip.className = 'mobile-tip';
         tip.innerHTML = '💡 手机用户提示：<br>点击下方按钮直接下载，或 <b>长按图片</b> 保存到相册';
         tip.style.display = 'block';
         resultContainer.appendChild(tip);
 
-        // 逐个处理
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             if (!file.type.match('image.*')) continue;
 
             try {
                 const resultDataUrl = await processSingleImage(file);
-                
-                // 存储数据
                 const outputName = `framed_${file.name.split('.')[0]}.png`;
                 processedFiles.push({ name: outputName, data: resultDataUrl });
-
-                // 创建 DOM 元素
                 createResultCard(resultDataUrl, outputName, i + 1);
             } catch (err) {
                 console.error("处理出错:", err);
@@ -418,13 +408,11 @@
 
         loader.style.display = 'none';
         
-        // 如果多张，显示打包按钮
         if (processedFiles.length > 1) {
             batchDownloadContainer.style.display = 'block';
         }
     }
 
-    // === 图像算法 (Canvas 实现) ===
     function processSingleImage(file) {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -436,7 +424,6 @@
                 const origH = img.height;
                 const baseSize = Math.min(origW, origH);
                 
-                // 计算尺寸
                 let borderWidth = Math.floor(baseSize * PARAMS.border_scale);
                 borderWidth = Math.max(borderWidth, 1);
                 
@@ -446,32 +433,26 @@
                 canvas.width = newW;
                 canvas.height = newH;
 
-                // 1. 绘制背景 (模糊)
-                // 为了性能，先画一个小图模糊，再拉伸，或者直接画
+                // 1. 绘制模糊背景
                 ctx.save();
-                // 模拟 object-fit: cover 的效果填充背景
                 ctx.filter = `blur(${PARAMS.blur_radius}px)`;
-                // 稍微放大一点以免模糊边缘变淡
                 ctx.drawImage(img, -50, -50, newW + 100, newH + 100);
                 ctx.restore();
 
-                // 2. 绘制阴影 (紧凑贴合版)
+                // 2. 绘制贴合阴影
                 ctx.save();
                 ctx.globalAlpha = PARAMS.shadow_opacity;
                 ctx.filter = `blur(${PARAMS.shadow_blur}px)`;
                 ctx.fillStyle = "#000000";
-                
-                // 直接使用和原图完全一样的尺寸绘制阴影，不再向外扩张
                 roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius);
                 ctx.fill();
                 ctx.restore();
 
-                // 3. 绘制前景 (原图 + 圆角遮罩)
+                // 3. 绘制原图
                 ctx.save();
-                // 设置路径为圆角矩形
                 ctx.beginPath();
                 roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius);
-                ctx.clip(); // 裁剪
+                ctx.clip(); 
                 ctx.drawImage(img, borderWidth, borderWidth, origW, origH);
                 ctx.restore();
 
@@ -482,7 +463,6 @@
         });
     }
 
-    // Canvas 圆角矩形辅助函数
     function roundRect(ctx, x, y, w, h, r) {
         if (w < 2 * r) r = w / 2;
         if (h < 2 * r) r = h / 2;
@@ -495,11 +475,9 @@
         ctx.closePath();
     }
 
-    // === DOM 生成 ===
     function createResultCard(dataUrl, name, index) {
         const card = document.createElement('div');
         card.className = 'card';
-        
         card.innerHTML = `
             <img src="${dataUrl}" class="result-img" alt="处理结果">
             <div class="card-controls">
@@ -513,26 +491,20 @@
         resultContainer.appendChild(card);
     }
 
-    // === 打包下载 ===
     zipBtn.addEventListener('click', () => {
         if (!window.JSZip) {
             alert("JSZip 库加载失败，请检查网络或刷新重试");
             return;
         }
-        
         const zip = new JSZip();
         processedFiles.forEach(file => {
-            // dataURL 转 blob
             const base64Data = file.data.split(',')[1];
             zip.file(file.name, base64Data, {base64: true});
         });
-
         zip.generateAsync({type:"blob"}).then(function(content) {
             saveAs(content, "anan_framed_photos.zip");
         });
     });
-
 </script>
-
 </body>
 </html>
