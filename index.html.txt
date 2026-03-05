@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>安安边框 - 极速版</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        /* === 核心样式复刻：深海琉璃版 === */
+        :root {
+            --bg-color: #F4F9FD;
+            --text-color: #021024;
+            --title-color: #052659;
+            --subtitle-color: #5483B3;
+            --border-color: #7DA0CA;
+            --btn-start: #052659;
+            --btn-end: #5483B3;
+            --label-bg: #C1E8FF;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            background-image: linear-gradient(to bottom, #E3F2FD 0%, #F4F9FD 400px);
+            color: var(--text-color);
+            font-family: "Source Han Sans CN", "Microsoft YaHei", sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 容器 */
+        .container {
+            width: 90%;
+            max-width: 600px;
+            padding: 20px 0;
+        }
+
+        /* 标题 */
+        h1 {
+            font-weight: 900;
+            color: var(--title-color);
+            font-size: 36px; /* 手机端稍微调小一点适配 */
+            text-align: center;
+            margin-bottom: 5px;
+            letter-spacing: -1px;
+            text-shadow: 0px 2px 0px rgba(255,255,255,0.8);
+        }
+
+        @media (min-width: 768px) {
+            h1 { font-size: 46px; }
+        }
+
+        .subtitle {
+            font-weight: 400;
+            font-size: 15px;
+            color: var(--subtitle-color);
+            text-align: center;
+            margin-top: 5px;
+            margin-bottom: 40px;
+            letter-spacing: 1.5px;
+        }
+
+        /* 上传区域 */
+        .upload-area {
+            background-color: rgba(255, 255, 255, 0.7);
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            background-image: repeating-linear-gradient(
+                45deg,
+                rgba(193, 232, 255, 0.1),
+                rgba(193, 232, 255, 0.1) 10px,
+                rgba(255, 255, 255, 0.1) 10px,
+                rgba(255, 255, 255, 0.1) 20px
+            );
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover, .upload-area.dragover {
+            border-color: var(--title-color);
+            border-style: solid;
+            background-color: #FFFFFF;
+            box-shadow: 0 15px 40px rgba(5, 38, 89, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .upload-icon {
+            color: var(--subtitle-color);
+            width: 45px;
+            height: 45px;
+            margin-bottom: 15px;
+            filter: drop-shadow(0px 4px 6px rgba(84, 131, 179, 0.2));
+        }
+
+        .upload-text {
+            color: var(--title-color);
+            font-size: 16px;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #7DA0CA 0%, #5483B3 100%);
+            color: #FFFFFF;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            border: none;
+            box-shadow: 0 4px 10px rgba(84, 131, 179, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-block;
+        }
+
+        /* 隐藏真实的文件输入框 */
+        #fileInput {
+            display: none;
+        }
+
+        /* 结果展示区 */
+        .result-container {
+            margin-top: 30px;
+            width: 100%;
+        }
+
+        .card {
+            margin-bottom: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-img {
+            width: 100%;
+            height: auto;
+            border: 10px solid #FFFFFF;
+            border-radius: 6px;
+            box-shadow: 0 15px 35px rgba(2, 16, 36, 0.1);
+            display: block;
+        }
+
+        .card-controls {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            gap: 15px;
+        }
+
+        .index-badge {
+            background-color: #F0F4F8;
+            color: var(--subtitle-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .download-btn {
+            flex: 1;
+            background: linear-gradient(135deg, var(--btn-start) 0%, var(--btn-end) 100%);
+            color: #FFFFFF;
+            border: none;
+            border-radius: 10px;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 25px rgba(5, 38, 89, 0.2);
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .download-btn:active {
+            transform: scale(0.98);
+        }
+
+        .download-btn.secondary {
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            color: var(--title-color);
+            box-shadow: none;
+        }
+
+        .divider {
+            border: 0;
+            border-top: 1px dashed var(--label-bg);
+            margin: 30px 0;
+        }
+
+        /* 底部版权 */
+        .footer {
+            text-align: center;
+            color: var(--border-color);
+            font-size: 12px;
+            margin: 50px 0 20px 0;
+            opacity: 0.8;
+        }
+
+        /* 加载动画 */
+        .loader {
+            display: none;
+            margin: 20px auto;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--subtitle-color);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* 移动端提示 */
+        .mobile-tip {
+            background-color: #E3F2FD;
+            padding: 12px;
+            border-radius: 8px;
+            color: var(--title-color);
+            font-size: 13px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid var(--label-bg);
+            display: none; /* JS控制显示 */
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>安安边框</h1>
+    <div class="subtitle">一键生成自适应模糊边框，打造画廊级质感</div>
+
+    <div class="upload-area" id="dropZone">
+        <svg class="upload-icon" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+        </svg>
+        <span class="upload-text">点击或拖拽图片到这里 (支持批量)</span>
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">浏览本地文件</button>
+        <input type="file" id="fileInput" accept="image/jpeg, image/png" multiple>
+    </div>
+
+    <div class="loader" id="loader"></div>
+
+    <div class="result-container" id="resultContainer">
+        </div>
+    
+    <div id="batchDownloadContainer" style="display:none; margin-top: 20px;">
+        <button id="zipBtn" class="download-btn secondary" style="width:100%">
+            📦 电脑端？点此一键打包下载 (.zip)
+        </button>
+    </div>
+
+    <div class="footer">Designed for Photography · 2026</div>
+</div>
+
+<script>
+    // === 配置参数 (与 Python 版保持一致) ===
+    const PARAMS = {
+        border_scale: 0.09,
+        blur_radius: 50, // Canvas的Blur和PIL不一样，50px roughly equals PIL 100
+        corner_radius: 90, 
+        shadow_blur: 30,
+        shadow_opacity: 0.2
+    };
+
+    const fileInput = document.getElementById('fileInput');
+    const dropZone = document.getElementById('dropZone');
+    const resultContainer = document.getElementById('resultContainer');
+    const loader = document.getElementById('loader');
+    const batchDownloadContainer = document.getElementById('batchDownloadContainer');
+    const zipBtn = document.getElementById('zipBtn');
+    
+    // 存储处理后的数据以便打包
+    let processedFiles = [];
+
+    // === 事件监听 ===
+    fileInput.addEventListener('change', handleFiles);
+    
+    // 拖拽支持
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length) processFiles(files);
+    });
+
+    function handleFiles(e) {
+        const files = e.target.files;
+        if (files.length) processFiles(files);
+    }
+
+    // === 核心处理流程 ===
+    async function processFiles(files) {
+        // 清空旧结果
+        resultContainer.innerHTML = '';
+        processedFiles = [];
+        batchDownloadContainer.style.display = 'none';
+        loader.style.display = 'block';
+
+        // 显示移动端提示
+        const tip = document.createElement('div');
+        tip.className = 'mobile-tip';
+        tip.innerHTML = '💡 手机用户提示：<br>点击下方按钮直接下载，或 <b>长按图片</b> 保存到相册';
+        tip.style.display = 'block';
+        resultContainer.appendChild(tip);
+
+        // 逐个处理
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (!file.type.match('image.*')) continue;
+
+            try {
+                const resultDataUrl = await processSingleImage(file);
+                
+                // 存储数据
+                const outputName = `framed_${file.name.split('.')[0]}.png`;
+                processedFiles.push({ name: outputName, data: resultDataUrl });
+
+                // 创建 DOM 元素
+                createResultCard(resultDataUrl, outputName, i + 1);
+            } catch (err) {
+                console.error("处理出错:", err);
+                alert(`图片 ${file.name} 处理失败`);
+            }
+        }
+
+        loader.style.display = 'none';
+        
+        // 如果多张，显示打包按钮
+        if (processedFiles.length > 1) {
+            batchDownloadContainer.style.display = 'block';
+        }
+    }
+
+    // === 图像算法 (Canvas 实现) ===
+    function processSingleImage(file) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                const origW = img.width;
+                const origH = img.height;
+                const baseSize = Math.min(origW, origH);
+                
+                // 计算尺寸
+                let borderWidth = Math.floor(baseSize * PARAMS.border_scale);
+                borderWidth = Math.max(borderWidth, 1);
+                
+                const newW = origW + (2 * borderWidth);
+                const newH = origH + (2 * borderWidth);
+
+                canvas.width = newW;
+                canvas.height = newH;
+
+                // 1. 绘制背景 (模糊)
+                // 为了性能，先画一个小图模糊，再拉伸，或者直接画
+                ctx.save();
+                // 模拟 object-fit: cover 的效果填充背景
+                ctx.filter = `blur(${PARAMS.blur_radius}px)`;
+                // 稍微放大一点以免模糊边缘变淡
+                ctx.drawImage(img, -50, -50, newW + 100, newH + 100);
+                ctx.restore();
+
+                // 2. 绘制阴影
+                // Python逻辑是：黑框 -> 模糊 -> 0.2透明度
+                const padding = PARAMS.shadow_blur * 3;
+                const shadowX = borderWidth - padding; // offset为0，所以居中于border内
+                const shadowY = borderWidth - padding;
+                const shadowW = origW + (2 * padding);
+                const shadowH = origH + (2 * padding);
+
+                // 在 Canvas 中，我们直接用 shadowBlur 属性或画一个模糊的半透明黑框
+                // 方案：画一个圆角矩形，设置 filter blur
+                ctx.save();
+                ctx.globalAlpha = PARAMS.shadow_opacity;
+                ctx.filter = `blur(${PARAMS.shadow_blur}px)`;
+                ctx.fillStyle = "#000000";
+                
+                // 绘制扩大的圆角矩形 (Shadow Layer)
+                roundRect(ctx, shadowX, shadowY, shadowW, shadowH, PARAMS.corner_radius);
+                ctx.fill();
+                ctx.restore();
+
+                // 3. 绘制前景 (原图 + 圆角遮罩)
+                ctx.save();
+                // 设置路径为圆角矩形
+                ctx.beginPath();
+                roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius);
+                ctx.clip(); // 裁剪
+                ctx.drawImage(img, borderWidth, borderWidth, origW, origH);
+                ctx.restore();
+
+                resolve(canvas.toDataURL('image/png'));
+            };
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    // Canvas 圆角矩形辅助函数
+    function roundRect(ctx, x, y, w, h, r) {
+        if (w < 2 * r) r = w / 2;
+        if (h < 2 * r) r = h / 2;
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
+    }
+
+    // === DOM 生成 ===
+    function createResultCard(dataUrl, name, index) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        
+        card.innerHTML = `
+            <img src="${dataUrl}" class="result-img" alt="处理结果">
+            <div class="card-controls">
+                <div class="index-badge">#${index}</div>
+                <a href="${dataUrl}" download="${name}" class="download-btn">
+                    <span>⬇️ 保存这张图片</span>
+                </a>
+            </div>
+            <hr class="divider">
+        `;
+        resultContainer.appendChild(card);
+    }
+
+    // === 打包下载 ===
+    zipBtn.addEventListener('click', () => {
+        if (!window.JSZip) {
+            alert("JSZip 库加载失败，请检查网络或刷新重试");
+            return;
+        }
+        
+        const zip = new JSZip();
+        processedFiles.forEach(file => {
+            // dataURL 转 blob
+            const base64Data = file.data.split(',')[1];
+            zip.file(file.name, base64Data, {base64: true});
+        });
+
+        zip.generateAsync({type:"blob"}).then(function(content) {
+            saveAs(content, "anan_framed_photos.zip");
+        });
+    });
+
+</script>
+
+</body>
+</html>
