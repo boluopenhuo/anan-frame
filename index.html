@@ -3,582 +3,406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>猪包边框 | 画廊级质感生成</title>
+    <title>猪包边框 | Gallery Quality</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐽</text></svg>">
-    <!-- 核心依赖保留 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        /* === 清爽科技冰蓝色系设计系统 - 完全保留原有动效秩序 === */
+        /* === 核心变量：自适应深浅色高级蓝 === */
         :root {
-            /* 核心冰蓝色系 - 中低明度沉稳科技感，不同明度做层级区分，不低沉 */
-            --blue-primary: #165DFF; /* 主色：核心按钮、标题、重点高亮 */
-            --blue-secondary: #4080FF; /* 次色：hover状态、次要元素、层级区分 */
-            --blue-light: #69B1FF; /* 浅蓝：边框、装饰线、弱高亮 */
-            --blue-ultralight: #E8F3FF; /* 极浅蓝：玻璃态边框、背景装饰、弱对比 */
-            --blue-deep: #0E42D2; /* 深蓝：点击态、强强调，不暗沉 */
-
-            /* 点缀色：低饱和暖橙+暖粉，小面积使用，不抢主色 */
-            --accent-orange: #FF9A62; /* 低饱和暖橙 */
-            --accent-pink: #F78DA7; /* 低饱和暖粉 */
-
-            /* 背景体系：浅冷灰通透基底，保留玻璃态质感 */
-            --bg-base: #F5F7FA; /* 浅冷灰主基底，通透不发闷 */
-            --bg-glass: linear-gradient(135deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.55));
-            --bg-decoration: radial-gradient(circle at 20% 20%, rgba(22, 93, 255, 0.06), transparent 50%),
-                            radial-gradient(circle at 80% 80%, rgba(64, 128, 255, 0.06), transparent 50%);
-            
-            /* 中性色体系：冷调灰，呼应冰蓝色系，无暗沉 */
-            --bg-surface: rgba(255, 255, 255, 0.4);
-            --border-normal: rgba(22, 93, 255, 0.15);
-            --border-highlight: rgba(22, 93, 255, 0.3);
-            --text-primary: #1D2129;
-            --text-secondary: #4E5969;
-            --text-tertiary: #86909C;
-
-            /* 效果常量 - 100%保留原有动效规范，无任何修改 */
-            --radius-sm: 12px;
-            --radius-md: 16px;
-            --radius-lg: 24px;
-            --radius-xl: 32px;
-            --blur-glass: 24px;
-            --shadow-sm: 0 4px 12px rgba(22, 93, 255, 0.08);
-            --shadow-md: 0 8px 24px rgba(22, 93, 255, 0.12);
-            --shadow-lg: 0 16px 48px rgba(22, 93, 255, 0.18);
-            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* 浅色模式 (冰川蓝) */
+            --bg-color: #F5F7FA;
+            --text-main: #1D1D1F;
+            --text-muted: #86868B;
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --glass-shadow: 0 20px 40px rgba(0, 40, 100, 0.05);
+            --accent-color: #0066CC;
+            --orb-1: #D0E4FF;
+            --orb-2: #E1DEFF;
+            --shimmer-bg: rgba(255, 255, 255, 0.5);
+            --shimmer-highlight: rgba(255, 255, 255, 0.9);
         }
 
-        /* 全局重置与基础设定 - 布局无修改 */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                /* 深色模式 (午夜蓝) */
+                --bg-color: #0A0A0C;
+                --text-main: #F5F5F7;
+                --text-muted: #A1A1A6;
+                --glass-bg: rgba(20, 20, 25, 0.6);
+                --glass-border: rgba(255, 255, 255, 0.1);
+                --glass-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+                --accent-color: #2997FF;
+                --orb-1: #0A2458;
+                --orb-2: #1D1845;
+                --shimmer-bg: rgba(30, 30, 35, 0.5);
+                --shimmer-highlight: rgba(255, 255, 255, 0.05);
+            }
+        }
+
+        /* === 全局重置 === */
         * {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
         }
 
         body {
-            margin: 0 !important;
-            padding: 0 !important;
-            min-height: 100vh !important;
-            /* 浅冷灰通透基底，极淡冰蓝装饰渐变，无暗沉 */
-            background: var(--bg-decoration), var(--bg-base) !important;
-            background-color: var(--bg-base) !important;
-            color: var(--text-primary) !important;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Microsoft YaHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
+            position: relative;
             overflow-x: hidden;
+            transition: background-color 0.5s ease;
         }
 
-        /* 容器规范 - 完全保留原有秩序 */
+        /* === 巨型弥散流光背景 === */
+        .aurora-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.8;
+            animation: float 20s infinite alternate ease-in-out;
+        }
+        .orb-1 {
+            width: 60vw; height: 60vw;
+            background: var(--orb-1);
+            top: -10%; left: -10%;
+        }
+        .orb-2 {
+            width: 50vw; height: 50vw;
+            background: var(--orb-2);
+            bottom: -10%; right: -10%;
+            animation-delay: -5s;
+        }
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(10vw, 10vh) scale(1.1); }
+        }
+
+        /* === 主容器 === */
         .container {
-            width: 92%;
+            width: 90%;
             max-width: 720px;
-            padding: 48px 0 80px;
+            padding: 60px 0 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
         }
 
-        /* === 标题区域 - 冰蓝色渐变，暖色系小面积点缀动效 === */
+        /* === 标题排版 === */
         h1 {
-            font-weight: 800;
             font-size: 42px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
             text-align: center;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-            /* 冰蓝色系渐变，保持科技感 */
-            background: linear-gradient(135deg, var(--blue-primary) 0%, var(--blue-light) 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: titleFloat 6s ease-in-out infinite;
         }
-
-        @keyframes titleFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-4px); }
-        }
-
         .subtitle {
-            font-weight: 400;
             font-size: 16px;
-            color: var(--text-secondary);
+            color: var(--text-muted);
+            letter-spacing: 0.01em;
+            margin-bottom: 50px;
             text-align: center;
-            margin-bottom: 48px;
-            letter-spacing: 0.5px;
-            line-height: 1.5;
+            font-weight: 400;
         }
 
-        /* 响应式标题适配 - 完全保留原有规范 */
-        @media (min-width: 768px) {
-            h1 { font-size: 56px; }
-            .subtitle { font-size: 18px; }
-        }
-
-        @media (max-width: 480px) {
-            h1 { font-size: 36px; }
-            .container { padding: 32px 0 64px; }
-        }
-
-        /* === 上传区域 - 冰蓝色系玻璃态，纯色边框，保留所有动效 === */
+        /* === 毛玻璃上传区 === */
         .upload-area {
-            background: var(--bg-glass);
-            backdrop-filter: blur(var(--blur-glass));
-            -webkit-backdrop-filter: blur(var(--blur-glass));
-            border: 2px dashed var(--border-normal);
-            border-radius: var(--radius-lg);
-            padding: 56px 24px;
+            width: 100%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 60px 20px;
             text-align: center;
             cursor: pointer;
-            transition: var(--transition-smooth);
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             position: relative;
             overflow: hidden;
         }
-
-        /* 上传区hover/拖拽状态 - 冰蓝色高亮，纯色边框，无渐变 */
         .upload-area:hover, .upload-area.dragover {
-            border-color: var(--border-highlight);
-            border-style: solid;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.65));
-            box-shadow: var(--shadow-lg), 0 0 40px rgba(22, 93, 255, 0.15);
-            transform: translateY(-2px);
-        }
-
-        .upload-area::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(22, 93, 255, 0.06), transparent 70%);
-            opacity: 0;
-            transition: var(--transition-smooth);
-            pointer-events: none;
-        }
-
-        .upload-area:hover::before, .upload-area.dragover::before {
-            opacity: 1;
-        }
-
-        .upload-icon {
-            color: var(--text-tertiary);
-            width: 56px;
-            height: 56px;
-            margin-bottom: 20px;
-            filter: drop-shadow(0 4px 8px rgba(22, 93, 255, 0.1));
-            transition: var(--transition-smooth);
-        }
-
-        .upload-area:hover .upload-icon {
-            color: var(--blue-secondary);
-            transform: translateY(-4px);
-        }
-
-        .upload-text {
-            color: var(--text-primary);
-            font-size: 18px;
-            font-weight: 600;
-            display: block;
-            margin-bottom: 20px;
-            letter-spacing: 0.3px;
-        }
-
-        .upload-btn {
-            background: var(--blue-primary); /* 纯色主冰蓝，无渐变，强化利落感 */
-            color: #FFFFFF;
-            border-radius: var(--radius-md);
-            padding: 12px 32px;
-            font-weight: 600;
-            font-size: 15px;
-            border: none;
-            box-shadow: 0 8px 20px rgba(22, 93, 255, 0.3);
-            cursor: pointer;
-            transition: var(--transition-smooth);
-            display: inline-block;
-            letter-spacing: 0.3px;
-        }
-
-        .upload-btn:hover {
-            background: var(--blue-secondary); /* 次冰蓝做hover层级区分 */
-            transform: scale(1.03);
-            box-shadow: 0 12px 28px rgba(22, 93, 255, 0.4);
-        }
-
-        .upload-btn:active {
-            background: var(--blue-deep); /* 深蓝做点击态层级区分 */
             transform: scale(0.98);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
         }
-
+        .upload-icon {
+            width: 48px; height: 48px;
+            color: var(--accent-color);
+            margin-bottom: 16px;
+            opacity: 0.9;
+        }
+        .upload-text {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        .upload-hint {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
         #fileInput { display: none; }
 
-        /* === 移动端提示 - 暖色系小面积点缀 === */
-        .mobile-tip {
-            background: var(--bg-glass);
-            backdrop-filter: blur(var(--blur-glass));
-            -webkit-backdrop-filter: blur(var(--blur-glass));
-            border: 1px solid var(--border-normal);
-            padding: 14px 16px;
-            border-radius: var(--radius-sm);
-            color: var(--text-secondary);
-            font-size: 14px;
-            text-align: center;
-            margin-bottom: 24px;
-            display: none;
-            line-height: 1.5;
-        }
-
-        /* === 加载动画 - 冰蓝色系，保留原有动效 === */
-        .loader {
-            display: none;
-            margin: 32px auto;
-            width: 40px;
-            height: 40px;
-            position: relative;
-        }
-
-        .loader::before, .loader::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 3px solid transparent;
-        }
-
-        .loader::before {
-            border-top-color: var(--blue-ultralight);
-            animation: spin 1.2s linear infinite;
-        }
-
-        .loader::after {
-            border-top-color: var(--blue-primary);
-            animation: spin 0.6s linear infinite reverse;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* === 演示区域 - 冰蓝色系玻璃态，暖色系点缀 === */
+        /* === 极简并排演示区 === */
         .demo-area {
             width: 100%;
-            margin-top: 48px;
-            text-align: center;
-        }
-
-        .demo-title {
+            margin-top: 60px;
             display: flex;
-            align-items: center;
+            gap: 40px;
             justify-content: center;
-            color: var(--text-tertiary);
-            font-size: 15px;
-            letter-spacing: 2px;
-            margin-bottom: 32px;
-            font-weight: 500;
         }
-
-        /* 标题装饰：暖色系小面积点缀，不抢主色 */
-        .demo-title::before, .demo-title::after {
-            content: "";
-            flex: 1;
-            border-bottom: 1px dashed var(--border-normal);
-            margin: 0 16px;
-        }
-
-        .demo-grid {
-            display: flex;
-            gap: 32px;
-            justify-content: center;
-            align-items: flex-end;
-            padding: 32px 24px;
-            background: var(--bg-glass);
-            backdrop-filter: blur(var(--blur-glass));
-            -webkit-backdrop-filter: blur(var(--blur-glass));
-            border: 1px solid var(--border-normal);
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-        }
-
         .demo-col {
+            flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 16px;
         }
-
-        .demo-col:first-child { flex: 0 0 44%; }
-        .demo-col:last-child { flex: 0 0 54%; }
-
-        .demo-img {
-            width: 100% !important;
-            height: auto !important;
-            border: 8px solid #FFFFFF;
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow-md);
-            pointer-events: none;
-            box-sizing: border-box;
-        }
-
-        .demo-caption {
-            font-size: 13px;
-            color: var(--text-tertiary);
-            margin-top: 16px;
-        }
-
-        .img-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-
-        /* 效果标签：暖粉点缀，小面积使用 */
-        .demo-col:last-child .img-label {
-            background: var(--accent-pink);
-            color: #FFFFFF;
-            padding: 4px 12px;
-            border-radius: 999px;
-        }
-
-        /* 移动端演示区适配 - 完全保留原有规范 */
-        @media (max-width: 600px) {
-            .demo-grid {
-                flex-direction: column;
-                align-items: center;
-                gap: 24px;
-                padding: 24px 16px;
-            }
-            .demo-col:first-child, .demo-col:last-child {
-                flex: 0 0 auto;
-                width: 100%;
-                max-width: 320px;
-            }
-        }
-
-        /* === 结果展示区 - 冰蓝色系玻璃态，纯色边框 === */
-        .result-container {
-            margin-top: 32px;
+        .demo-img-wrapper {
             width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+        .demo-img {
+            width: 100%;
+            height: auto;
+            display: block;
+            pointer-events: none; /* 防止图片自带的拖拽影响 3D 效果 */
+        }
+        .micro-label {
+            margin-top: 16px;
+            font-size: 11px;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
         }
 
-        .card {
-            margin-bottom: 32px;
-            animation: fadeInUp 0.5s ease;
-            background: var(--bg-glass);
-            backdrop-filter: blur(var(--blur-glass));
-            -webkit-backdrop-filter: blur(var(--blur-glass));
-            border: 1px solid var(--border-normal);
-            border-radius: var(--radius-lg);
-            padding: 20px;
-            box-shadow: var(--shadow-sm);
+        /* === 骨架屏加载区 === */
+        .shimmer-container {
+            display: none;
+            width: 100%;
+            margin-top: 40px;
+        }
+        .shimmer-card {
+            width: 100%;
+            aspect-ratio: 4/5;
+            background: var(--shimmer-bg);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+        }
+        .shimmer-card::after {
+            content: "";
+            position: absolute;
+            top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, var(--shimmer-highlight), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            100% { left: 200%; }
         }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(16px); }
+        /* === 结果展示区 === */
+        .result-container {
+            width: 100%;
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+        .result-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
+        .result-img-wrapper {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 24px;
+            transform-style: preserve-3d;
+        }
         .result-img {
             width: 100%;
-            aspect-ratio: 3 / 4;
-            object-fit: contain;
             height: auto;
-            border: 10px solid #FFFFFF;
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow-md);
             display: block;
         }
-
-        .card-controls {
-            display: flex;
-            align-items: center;
-            margin-top: 20px;
-            gap: 16px;
-        }
-
-        /* 序号徽章：暖橙点缀，小面积使用 */
-        .index-badge {
-            background: var(--bg-surface);
-            color: var(--accent-orange);
-            border: 1px solid rgba(255, 154, 98, 0.2);
-            padding: 14px 16px;
-            border-radius: var(--radius-md);
-            font-weight: 700;
-            min-width: 48px;
-            text-align: center;
-        }
-
-        .download-btn {
-            flex: 1;
-            background: var(--blue-primary); /* 纯色主冰蓝，无渐变 */
-            color: #FFFFFF;
-            border: none;
-            border-radius: var(--radius-md);
-            padding: 14px 20px;
-            font-size: 16px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-            box-shadow: 0 8px 20px rgba(22, 93, 255, 0.25);
-            cursor: pointer;
-            text-align: center;
-            text-decoration: none;
-            transition: var(--transition-smooth);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .download-btn:hover {
-            background: var(--blue-secondary); /* 次冰蓝做hover层级区分 */
-            transform: scale(1.02);
-            box-shadow: 0 12px 28px rgba(22, 93, 255, 0.35);
-        }
-
-        .download-btn:active {
-            background: var(--blue-deep); /* 深蓝做点击态层级区分 */
-            transform: scale(0.98);
-        }
-
-        .download-btn.secondary {
-            background: var(--bg-glass);
-            backdrop-filter: blur(var(--blur-glass));
-            -webkit-backdrop-filter: blur(var(--blur-glass));
-            border: 1px solid var(--border-highlight);
-            color: var(--blue-primary);
-            box-shadow: var(--shadow-sm);
-        }
-
-        .download-btn.secondary:hover {
-            background: var(--blue-ultralight);
-            border-color: var(--blue-light);
-        }
-
-        .divider {
-            border: 0;
-            border-top: 1px dashed var(--border-normal);
-            margin: 24px 0 0;
-        }
-
-        /* === 批量下载容器 - 次冰蓝纯色，无渐变 === */
-        #batchDownloadContainer {
-            display: none;
-            margin-top: 24px;
-        }
-
-        #zipBtn {
+        .result-footer {
             width: 100%;
-            background: var(--blue-secondary); /* 次冰蓝纯色，和主按钮做层级区分 */
-            box-shadow: 0 8px 20px rgba(64, 128, 255, 0.25);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 8px;
         }
-
-        #zipBtn:hover {
-            background: var(--blue-light); /* 浅冰蓝做hover层级区分 */
-            box-shadow: 0 12px 28px rgba(64, 128, 255, 0.35);
-        }
-
-        /* === 底部版权 - 冰蓝色系，暖色系小点缀 === */
-        .footer {
-            text-align: center;
-            color: var(--text-tertiary);
+        .result-index {
             font-size: 13px;
-            margin: 64px 0 20px;
-            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            font-weight: 500;
         }
-
-        /* 滚动条美化 - 冰蓝色系 */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        .download-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s;
         }
+        .download-link:hover { opacity: 0.8; }
 
-        ::-webkit-scrollbar-track {
+        /* 打包下载按钮 */
+        .batch-download {
+            margin-top: 20px;
+            width: 100%;
+            padding: 16px;
             background: transparent;
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            color: var(--text-main);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s;
+            display: none;
+        }
+        .batch-download:hover {
+            background: var(--glass-bg);
+            border-color: var(--accent-color);
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: rgba(22, 93, 255, 0.3);
-            border-radius: 999px;
+        .footer {
+            margin-top: 60px;
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(22, 93, 255, 0.45);
+        /* 响应式 */
+        @media (max-width: 600px) {
+            .demo-area { flex-direction: column; gap: 30px; }
+            h1 { font-size: 32px; }
         }
     </style>
 </head>
 <body>
 
+<div class="aurora-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+</div>
+
 <div class="container">
     <h1>猪包边框</h1>
-    <div class="subtitle">一键生成自适应模糊边框，打造画廊级质感</div>
+    <div class="subtitle">重构画廊级质感 · 极简边框生成工具</div>
 
-    <!-- 上传区域 - 核心功能区 -->
-    <div class="upload-area" id="dropZone">
-        <svg class="upload-icon" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+    <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a2.25 2.25 0 01-2.25-2.25V6.75A2.25 2.25 0 016.75 4.5h10.5A2.25 2.25 0 0119.5 6.75v10.5a2.25 2.25 0 01-2.25 2.25m-10.5 0h10.5" />
         </svg>
-        <span class="upload-text">点击或拖拽图片到这里 (支持批量上传)</span>
-        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">浏览本地文件</button>
-        <input type="file" id="fileInput" accept="image/jpeg, image/png" multiple>
+        <div class="upload-text">点击或拖拽图片至此</div>
+        <div class="upload-hint">支持批量上传本地文件</div>
+        <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" multiple>
     </div>
 
-    <!-- 加载动画 -->
-    <div class="loader" id="loader"></div>
-
-    <!-- 效果演示区 -->
-    <div id="demoArea" class="demo-area">
-        <div class="demo-title">✦ 效果演示 ✦</div>
-        <div class="demo-grid">
-            <div class="demo-col">
-                <img src="demo_original.jpg" alt="原图" class="demo-img" onerror="this.style.display='none'">
-                <div class="img-label">原图 ORIGINAL</div>
+    <div class="demo-area" id="demoArea">
+        <div class="demo-col">
+            <div class="demo-img-wrapper tilt-card">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500' style='background:%23e5e7eb'%3E%3C/svg%3E" alt="Original" class="demo-img">
             </div>
-            <div class="demo-col">
-                <img src="demo_processed.png" alt="效果图" class="demo-img" onerror="this.style.display='none'">
-                <div class="img-label">效果 EFFECT</div>
-            </div>
+            <div class="micro-label">Original</div>
         </div>
-        <div class="demo-caption">上传照片，即刻生成同款画廊级质感</div>
+        <div class="demo-col">
+            <div class="demo-img-wrapper tilt-card">
+                 <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='500' style='background:%23d1d5db; border:20px solid white'%3E%3C/svg%3E" alt="Processed" class="demo-img">
+            </div>
+            <div class="micro-label">Processed</div>
+        </div>
     </div>
 
-    <!-- 处理结果容器 -->
+    <div class="shimmer-container" id="loader">
+        <div class="shimmer-card"></div>
+    </div>
+
     <div class="result-container" id="resultContainer"></div>
-    
-    <!-- 批量下载按钮 -->
-    <div id="batchDownloadContainer">
-        <button id="zipBtn" class="download-btn">
-            📦 一键打包下载全部图片 (.zip)
-        </button>
-    </div>
 
-    <!-- 页脚 -->
-    <div class="footer">Designed for Photography · 2026</div>
+    <button id="zipBtn" class="batch-download">打包下载全部 (.zip)</button>
+
+    <div class="footer">Designed for Photography</div>
 </div>
 
 <script>
-    // === 核心配置参数 - 100%保留原有参数，无修改 ===
-    const PARAMS = {
-        border_scale: 0.09,
-        blur_radius: 50, 
-        corner_radius: 90, 
-        shadow_blur: 50,
-        shadow_opacity: 0.4
-    };
+    // === 3D 倾斜交互逻辑 ===
+    function initTiltEffect() {
+        const cards = document.querySelectorAll('.tilt-card');
+        cards.forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -8; // 最大倾斜 8 度
+                const rotateY = ((x - centerX) / centerX) * 8;
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+            });
+        });
+    }
+    // 初始化演示区的 tilt 效果
+    initTiltEffect();
 
-    // === DOM元素获取 - 无修改 ===
+    // === 核心配置与处理逻辑 ===
+    const PARAMS = { border_scale: 0.09, blur_radius: 50, corner_radius: 90, shadow_blur: 50, shadow_opacity: 0.4 };
+    
     const fileInput = document.getElementById('fileInput');
     const dropZone = document.getElementById('dropZone');
     const resultContainer = document.getElementById('resultContainer');
     const loader = document.getElementById('loader');
-    const batchDownloadContainer = document.getElementById('batchDownloadContainer');
-    const zipBtn = document.getElementById('zipBtn');
     const demoArea = document.getElementById('demoArea');
-    
+    const zipBtn = document.getElementById('zipBtn');
     let processedFiles = [];
 
-    // === 事件监听 - 100%保留原有逻辑，无修改 ===
     fileInput.addEventListener('change', handleFiles);
     
-    // 拖拽上传逻辑
     dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
         dropZone.classList.add('dragover');
@@ -587,89 +411,63 @@
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        if (files.length) processFiles(files);
+        if (e.dataTransfer.files.length) processFiles(e.dataTransfer.files);
     });
 
-    // === 核心处理函数 - 100%保留原有功能，无任何修改 ===
     function handleFiles(e) {
-        const files = e.target.files;
-        if (files.length) processFiles(files);
+        if (e.target.files.length) processFiles(e.target.files);
     }
 
-    // 批量处理图片
     async function processFiles(files) {
-        // 隐藏演示区
+        // 隐藏演示区，显示骨架屏
         if (demoArea) demoArea.style.display = 'none';
-
-        // 重置状态
         resultContainer.innerHTML = '';
         processedFiles = [];
-        batchDownloadContainer.style.display = 'none';
-        loader.style.display = 'block';
+        zipBtn.style.display = 'none';
         
-        // 添加移动端提示
-        const tip = document.createElement('div');
-        tip.className = 'mobile-tip';
-        tip.innerHTML = '💡 手机用户提示：<br>点击下方按钮直接下载，或 <b>长按图片</b> 保存到相册';
-        tip.style.display = 'block';
-        resultContainer.appendChild(tip);
+        loader.style.display = 'block';
 
-        // 循环处理每一张图片
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
             if (!file.type.match('image.*')) continue;
 
             try {
                 const resultDataUrl = await processSingleImage(file);
-                const outputName = `framed_${file.name.split('.')[0]}.png`;
+                const outputName = `gallery_${file.name.split('.')[0]}.png`;
                 processedFiles.push({ name: outputName, data: resultDataUrl });
-                createResultCard(resultDataUrl, outputName, i + 1);
+                createResultCard(resultDataUrl, outputName, i + 1, files.length);
             } catch (err) {
-                console.error("图片处理出错:", err);
-                alert(`图片 ${file.name} 处理失败，请重试`);
+                console.error("处理出错:", err);
             }
         }
 
-        // 处理完成
         loader.style.display = 'none';
         if (processedFiles.length > 1) {
-            batchDownloadContainer.style.display = 'block';
+            zipBtn.style.display = 'block';
         }
-        // 清空input，支持重复上传同一张图
-        fileInput.value = '';
     }
 
-    // 单张图片处理核心逻辑
+    // 图片处理引擎 (保留你原本强大的 Canvas 逻辑，保持不变)
     function processSingleImage(file) {
         return new Promise((resolve, reject) => {
             const img = new Image();
-            img.crossOrigin = 'anonymous';
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-
-                const origW = img.width;
-                const origH = img.height;
+                const origW = img.width, origH = img.height;
                 const baseSize = Math.min(origW, origH);
-                
-                // 计算边框宽度
-                let borderWidth = Math.floor(baseSize * PARAMS.border_scale);
-                borderWidth = Math.max(borderWidth, 1);
-                
-                const newW = origW + (2 * borderWidth);
-                const newH = origH + (2 * borderWidth);
+                let borderWidth = Math.max(Math.floor(baseSize * PARAMS.border_scale), 1);
+                const newW = origW + (2 * borderWidth), newH = origH + (2 * borderWidth);
 
-                canvas.width = newW;
-                canvas.height = newH;
+                canvas.width = newW; canvas.height = newH;
 
-                // 1. 绘制模糊背景层
+                // 模糊底图
                 ctx.save();
                 ctx.filter = `blur(${PARAMS.blur_radius}px)`;
                 ctx.drawImage(img, -50, -50, newW + 100, newH + 100);
                 ctx.restore();
 
-                // 2. 绘制阴影层
+                // 阴影
                 ctx.save();
                 ctx.globalAlpha = PARAMS.shadow_opacity;
                 ctx.filter = `blur(${PARAMS.shadow_blur}px)`;
@@ -678,7 +476,7 @@
                 ctx.fill();
                 ctx.restore();
 
-                // 3. 绘制原图（圆角裁剪）
+                // 原图
                 ctx.save();
                 ctx.beginPath();
                 roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius);
@@ -693,7 +491,6 @@
         });
     }
 
-    // 圆角矩形工具函数
     function roundRect(ctx, x, y, w, h, r) {
         if (w < 2 * r) r = w / 2;
         if (h < 2 * r) r = h / 2;
@@ -706,36 +503,38 @@
         ctx.closePath();
     }
 
-    // 生成结果卡片
-    function createResultCard(dataUrl, name, index) {
+    // 创建高级结果卡片
+    function createResultCard(dataUrl, name, index, total) {
         const card = document.createElement('div');
-        card.className = 'card';
+        card.className = 'result-card';
         card.innerHTML = `
-            <img src="${dataUrl}" class="result-img" alt="处理完成的图片">
-            <div class="card-controls">
-                <div class="index-badge">#${index}</div>
-                <a href="${dataUrl}" download="${name}" class="download-btn">
-                    <span>⬇️ 保存图片</span>
+            <div class="result-img-wrapper tilt-card">
+                <img src="${dataUrl}" class="result-img" alt="Result">
+            </div>
+            <div class="result-footer">
+                <span class="result-index">${String(index).padStart(2, '0')} / ${String(total).padStart(2, '0')}</span>
+                <a href="${dataUrl}" download="${name}" class="download-link">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Save Image
                 </a>
             </div>
-            <hr class="divider">
         `;
         resultContainer.appendChild(card);
+        // 为新生成的卡片绑定 3D 效果
+        initTiltEffect();
     }
 
-    // 批量打包下载功能
+    // 打包下载
     zipBtn.addEventListener('click', () => {
-        if (!window.JSZip) {
-            alert("JSZip 库加载失败，请检查网络连接后刷新页面重试");
-            return;
-        }
+        if (!window.JSZip) return alert("JSZip loading failed. Please refresh.");
         const zip = new JSZip();
         processedFiles.forEach(file => {
-            const base64Data = file.data.split(',')[1];
-            zip.file(file.name, base64Data, {base64: true});
+            zip.file(file.name, file.data.split(',')[1], {base64: true});
         });
-        zip.generateAsync({type:"blob"}).then(function(content) {
-            saveAs(content, "framed_photos_bundle.zip");
+        zip.generateAsync({type:"blob"}).then(content => {
+            saveAs(content, "Gallery_Frames.zip");
         });
     });
 </script>
