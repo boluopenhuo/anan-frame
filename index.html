@@ -90,31 +90,33 @@
             z-index: 1;
         }
 
-        /* A: 柔和极光边框 (严格锁死在边框内) */
+        /* A: 画廊艺术品的‘环境微光’ (丝滑贝母版) */
         .upload-area::before {
             content: ''; position: absolute; inset: 0;
             border-radius: 24px; 
-            padding: 1.5px; /* 这里控制极光光束的粗细 */
+            /* 🔑 1. 加宽线条，从隐形的 1.5px 加宽到 3px，存在感刚刚好 */
+            padding: 3px; 
             
-            /* 🔑 极度克制的调色：透明 -> 冰川灰蓝 -> 极光淡紫 -> 透明 */
+            /* 🔑 2. 贝母流光调色：提高不透明度，保留底色的同时让亮蓝和亮紫高光平滑交替 */
             background: linear-gradient(
                 110deg,
-                rgba(255, 255, 255, 0) 0%,
-                rgba(166, 193, 238, 0.5) 25%,
-                rgba(251, 194, 235, 0.6) 50%,
-                rgba(166, 193, 238, 0.5) 75%,
-                rgba(255, 255, 255, 0) 100%
+                rgba(255, 255, 255, 0.4) 0%,
+                rgba(166, 193, 238, 0.95) 30%,
+                rgba(251, 194, 235, 1) 50%,
+                rgba(166, 193, 238, 0.95) 70%,
+                rgba(255, 255, 255, 0.4) 100%
             );
             background-size: 200% auto;
-            animation: auroraFlow 4s linear infinite;
+            /* 🔑 3. 稍微加快一点点流转速度，让肉眼更容易捕捉到它的丝滑动态 */
+            animation: auroraFlow 3.5s linear infinite;
             
-            /* 🔑 终极魔法：利用 mask 把中心完全掏空，只留下 1.5px 的边框！光线绝对不会漏进中间 */
+            /* Mask 完美掏空内部，只留 3px 边框 */
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor; mask-composite: exclude;
             z-index: -1; pointer-events: none;
         }
 
-        /* 采用背景位移动画，全浏览器兼容，绝对不会静止卡死 */
+        /* 采用背景位移动画，全浏览器兼容 */
         @keyframes auroraFlow {
             0% { background-position: 200% center; }
             100% { background-position: 0% center; }
@@ -126,11 +128,11 @@
             background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), var(--accent-glow) 0%, transparent 40%);
             opacity: 0; transition: opacity 0.3s;
             border-radius: 24px;
-            overflow: hidden; /* 防止聚光灯溢出圆角 */
+            overflow: hidden; 
         }
         
-        /* 交互逻辑：悬浮时极光变暗，聚光灯亮起，卡片微浮 */
-        .upload-area:hover::before { opacity: 0.2; }
+        /* 🔑 4. 优化交互：悬浮时让贝母光束保留一点点亮度 (0.4)，与聚光灯完美融合 */
+        .upload-area:hover::before { opacity: 0.4; }
         .upload-area:hover .spotlight { opacity: 1; }
         .upload-area:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
 
