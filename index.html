@@ -77,41 +77,47 @@
         }
         .subtitle { font-size: 15px; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 50px; text-align: center; font-weight: 500; text-transform: uppercase; }
 
-        /* === A+B 结合的顶级上传组件 (连续液态流光版) === */
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        
+        /* === A+B 结合的顶级上传组件 (柔和极光版) === */
         .upload-area {
             width: 100%; max-width: 720px;
-            /* 去掉了原有的 background 和 border，交由伪元素处理，以达到完美贴合 */
+            /* 🔑 恢复了纯净的毛玻璃底色，拒绝迪斯科光污染 */
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
             border-radius: 24px; padding: 60px 20px; text-align: center; cursor: pointer;
             box-shadow: var(--glass-shadow);
             position: relative; 
-            overflow: hidden; /* 🔑 关键：切掉外部多余的光晕，只留边框 */
-            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s;
             z-index: 1;
         }
 
-        /* 🔑 新增：内部毛玻璃遮罩。盖住中心，只漏出边缘 1.5px 形成“框” */
-        .upload-area::after {
-            content: ''; position: absolute; 
-            inset: 1.5px; /* 这里决定了流光边框的粗细 */
-            background: var(--glass-bg);
-            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-            border-radius: 22.5px; /* 比外层 24px 稍微小一点，圆角才能完美嵌套 */
+        /* A: 柔和极光边框 (严格锁死在边框内) */
+        .upload-area::before {
+            content: ''; position: absolute; inset: 0;
+            border-radius: 24px; 
+            padding: 1.5px; /* 这里控制极光光束的粗细 */
+            
+            /* 🔑 极度克制的调色：透明 -> 冰川灰蓝 -> 极光淡紫 -> 透明 */
+            background: linear-gradient(
+                110deg,
+                rgba(255, 255, 255, 0) 0%,
+                rgba(166, 193, 238, 0.5) 25%,
+                rgba(251, 194, 235, 0.6) 50%,
+                rgba(166, 193, 238, 0.5) 75%,
+                rgba(255, 255, 255, 0) 100%
+            );
+            background-size: 200% auto;
+            animation: auroraFlow 4s linear infinite;
+            
+            /* 🔑 终极魔法：利用 mask 把中心完全掏空，只留下 1.5px 的边框！光线绝对不会漏进中间 */
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor; mask-composite: exclude;
             z-index: -1; pointer-events: none;
         }
 
-        /* 🔑 A: 常态全框连续流光 (底层旋转巨型渐变圆盘) */
-        .upload-area::before {
-            content: ''; position: absolute;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            /* 这种透明到蓝紫的过渡，会形成一道极其高级的“扫描光束”感 */
-            background: conic-gradient(
-                transparent 0%, #00E5FF 20%, #D500F9 45%, #2979FF 60%, transparent 80%
-            );
-            animation: spin 5s linear infinite; /* 原生 transform 动画，所有浏览器都极其丝滑 */
-            opacity: 0.8; transition: opacity 0.4s;
-            z-index: -2; pointer-events: none;
+        /* 采用背景位移动画，全浏览器兼容，绝对不会静止卡死 */
+        @keyframes auroraFlow {
+            0% { background-position: 200% center; }
+            100% { background-position: 0% center; }
         }
 
         /* B: 磁吸聚光灯 (默认隐藏，悬浮显示) */
@@ -119,12 +125,14 @@
             position: absolute; inset: 0; pointer-events: none; z-index: 0;
             background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), var(--accent-glow) 0%, transparent 40%);
             opacity: 0; transition: opacity 0.3s;
+            border-radius: 24px;
+            overflow: hidden; /* 防止聚光灯溢出圆角 */
         }
         
-        /* 交互逻辑：悬浮时 A(流光)消失，B(磁吸灯)亮起 */
-        .upload-area:hover::before { opacity: 0; }
+        /* 交互逻辑：悬浮时极光变暗，聚光灯亮起，卡片微浮 */
+        .upload-area:hover::before { opacity: 0.2; }
         .upload-area:hover .spotlight { opacity: 1; }
-        .upload-area:hover { transform: translateY(-2px); }
+        .upload-area:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
 
         /* 点击水波纹 */
         .ripple {
