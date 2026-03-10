@@ -9,7 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stackblur-canvas/2.5.0/stackblur.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <style>
-        /* === 核心变量 === */
+        /* === 核心变量：自适应冷峻白蓝/午夜蓝 === */
         :root {
             --bg-color: #EBF1F6;
             --text-main: #1D1D1F;
@@ -22,6 +22,7 @@
             --orb-1: #A6C1EE;
             --orb-2: #FBC2EB;
             --shimmer-bg: rgba(255, 255, 255, 0.3);
+            --shimmer-highlight: rgba(255, 255, 255, 0.8);
             --particle-color: #FF69B4; 
         }
 
@@ -37,21 +38,26 @@
                 --accent-glow: rgba(41, 151, 255, 0.4);
                 --orb-1: #0A2458;
                 --orb-2: #1D1845;
+                --shimmer-bg: rgba(30, 30, 40, 0.4);
+                --shimmer-highlight: rgba(255, 255, 255, 0.1);
                 --particle-color: #FF2997;
             }
         }
 
+        /* === 全局重置 === */
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-        body { background-color: var(--bg-color); color: var(--text-main); font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; transition: background-color 0.5s ease; }
+        body { background-color: var(--bg-color); color: var(--text-main); font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; min-height: 100vh; display: flex; flex-direction: column; align-items: center; position: relative; overflow-x: hidden; transition: background-color 0.5s ease; }
 
+        /* 巨型弥散流光背景 */
         .aurora-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; overflow: hidden; pointer-events: none; }
         .orb { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.7; animation: float 20s infinite alternate ease-in-out; }
         .orb-1 { width: 70vw; height: 70vw; background: var(--orb-1); top: -20%; left: -10%; }
         .orb-2 { width: 60vw; height: 60vw; background: var(--orb-2); bottom: -20%; right: -10%; animation-delay: -5s; }
         @keyframes float { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(15vw, 15vh) scale(1.1); } }
 
-        .container { width: 95%; max-width: 1000px; padding: 60px 0 40px; display: flex; flex-direction: column; align-items: center; z-index: 1; position: relative;}
+        .container { width: 95%; max-width: 1100px; padding: 60px 0 40px; display: flex; flex-direction: column; align-items: center; z-index: 1; position: relative;}
 
+        /* === 极客硅谷风 Title === */
         .brand-title { font-size: 46px; font-weight: 800; letter-spacing: -0.04em; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; position: relative; }
         .brand-emoji { font-size: 38px; opacity: 0.85; transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s; cursor: pointer; display: inline-block; transform-origin: center; user-select: none; position: relative; -webkit-tap-highlight-color: transparent; }
         .brand-emoji:hover { opacity: 1; transform: scale(1.3) rotate(10deg); }
@@ -61,19 +67,19 @@
         .particle-emitter { position: absolute; width: 100px; height: 100px; top: 50%; left: 92%; transform: translate(-50%, -50%); pointer-events: none; z-index: 100; }
         .boop-particle { position: absolute; color: var(--particle-color); font-size: 16px; opacity: 0; user-select: none; will-change: transform, opacity; filter: drop-shadow(0 0 5px var(--particle-color)); }
 
-        .subtitle { font-size: 15px; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 40px; text-align: center; font-weight: 500; text-transform: uppercase; }
+        .subtitle { font-size: 15px; color: var(--text-muted); letter-spacing: 0.05em; margin-bottom: 50px; text-align: center; font-weight: 500; text-transform: uppercase; }
 
-        /* === 🚀 液态灵动空间核心布局 === */
+        /* =======================================================
+           🚀 新增：液态灵动空间核心布局 (Workspace, Sidebar, Main Stage)
+           ======================================================= */
         .workspace {
             width: 100%;
             display: flex;
             gap: 24px;
             align-items: flex-start;
-            /* 居中过渡动画 */
             transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* 主舞台 (包含上传区和预览区) */
         .main-stage {
             flex: 1;
             display: flex;
@@ -83,9 +89,9 @@
             transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        /* 🔑 B: 空间折叠展开侧边栏 */
+        /* 空间折叠侧边栏 */
         .sidebar {
-            width: 0; /* 初始宽度为0，完全折叠 */
+            width: 0;
             opacity: 0;
             overflow: hidden;
             background: var(--glass-bg);
@@ -93,73 +99,69 @@
             -webkit-backdrop-filter: blur(24px);
             border-radius: 28px;
             box-shadow: var(--glass-shadow);
-            border: 1px solid transparent; /* 初始无边框防溢出 */
+            border: 1px solid transparent;
             transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             flex-direction: column;
             gap: 24px;
         }
 
-        /* 当有文件时，触发变身！ */
+        /* 当选中有效图片后，触发容器液态形变！ */
         .app-active .sidebar {
-            width: 320px; /* 侧边栏丝滑展开 */
+            width: 340px; 
             opacity: 1;
             padding: 32px 24px;
             border: 1px solid var(--glass-border);
         }
+        
+        /* 上传区形态变幻 */
+        .upload-area { width: 100%; max-width: 720px; background: var(--glass-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 24px; padding: 60px 20px; text-align: center; cursor: pointer; box-shadow: var(--glass-shadow); position: relative; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1; }
         .app-active .upload-area {
-            /* 上传区在有图时，缩小变成一个顶部的横条，不抢戏 */
-            padding: 24px;
+            max-width: 100%; /* 填满剩余空间 */
+            padding: 24px;   /* 缩小成横条 */
             border-radius: 20px;
             margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
         }
-        .app-active .upload-area::before { padding: 1.5px; } /* 缩小极光边框 */
-        .app-active .upload-icon { display: none; }
+        .app-active .upload-icon { margin-bottom: 0; width: 24px; height: 24px; }
+        .app-active .upload-text { margin-bottom: 0; font-size: 15px; }
         .app-active .upload-hint { display: none; }
+        .app-active .upload-area::before { padding: 1.5px; } /* 缩小贝母边框 */
 
-        /* === B: macOS 原生控制中心风 滑块 === */
+        /* === 极简参数滑块 (macOS 控制中心风) === */
         .control-group { display: flex; flex-direction: column; gap: 12px; width: 100%; white-space: nowrap; }
         .control-header { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600; color: var(--text-main); letter-spacing: 0.05em; text-transform: uppercase;}
         .control-value { font-variant-numeric: tabular-nums; color: var(--text-muted); }
 
         .macos-slider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 28px; /* 粗胶囊 */
-            border-radius: 14px;
-            /* 极简背景，靠 JS 实时更新线性渐变来实现“液态填充” */
+            -webkit-appearance: none; width: 100%; height: 28px; border-radius: 14px; outline: none;
             background: linear-gradient(to right, var(--accent-color) var(--val, 50%), rgba(134, 134, 139, 0.15) var(--val, 50%));
-            outline: none;
             box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.1);
             transition: transform 0.2s;
         }
-        .macos-slider:active { transform: scale(0.98); } /* 按下时的物理反馈 */
-        
-        /* 隐藏极其丑陋的默认滑块圆点，完全依靠胶囊颜色填充 */
-        .macos-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 28px; height: 28px;
-            border-radius: 50%;
-            background: transparent; 
-            cursor: ew-resize;
-        }
+        .macos-slider:active { transform: scale(0.98); }
+        .macos-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: transparent; cursor: ew-resize; }
 
-        /* 重新调整控制台样式以适应新布局 */
-        .demo-console { width: 100%; background: var(--glass-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--glass-border); border-radius: 28px; padding: 40px; box-shadow: var(--glass-shadow); display: none; flex-direction: column; align-items: center; animation: fadeIn 0.6s forwards; }
-        
-        /* 其他样式继承 */
-        .upload-area { width: 100%; background: var(--glass-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 24px; padding: 60px 20px; text-align: center; cursor: pointer; box-shadow: var(--glass-shadow); position: relative; transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); z-index: 1; }
-        .upload-area::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 4px; background: linear-gradient( 110deg, rgba(255, 255, 255, 0.4) 0%, rgba(166, 193, 238, 0.95) 30%, rgba(251, 194, 235, 1) 50%, rgba(166, 193, 238, 0.95) 70%, rgba(255, 255, 255, 0.4) 100% ); background-size: 200% auto; animation: auroraFlow 3.5s linear infinite; -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none; transition: padding 0.6s; }
+        /* =======================================================
+           以下为保留的原有样式
+           ======================================================= */
+        .upload-area::before { content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 4px; background: linear-gradient( 110deg, rgba(255, 255, 255, 0.4) 0%, rgba(166, 193, 238, 0.95) 30%, rgba(251, 194, 235, 1) 50%, rgba(166, 193, 238, 0.95) 70%, rgba(255, 255, 255, 0.4) 100% ); background-size: 200% auto; animation: auroraFlow 3.5s linear infinite; -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; z-index: -1; pointer-events: none; transition: padding 0.6s cubic-bezier(0.16, 1, 0.3, 1);}
         @keyframes auroraFlow { 0% { background-position: 200% center; } 100% { background-position: 0% center; } }
         .spotlight { position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), var(--accent-glow) 0%, transparent 40%); opacity: 0; transition: opacity 0.3s; border-radius: inherit; overflow: hidden; }
         .upload-area:hover::before { opacity: 0.4; }
         .upload-area:hover .spotlight { opacity: 1; }
         .upload-area:hover { transform: translateY(-2px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
-        .upload-icon { width: 48px; height: 48px; color: var(--accent-color); margin-bottom: 16px; opacity: 0.9; position: relative; z-index: 2; transition: all 0.3s;}
-        .upload-text { font-size: 16px; font-weight: 600; margin-bottom: 8px; position: relative; z-index: 2; transition: all 0.3s;}
-        .upload-hint { font-size: 13px; color: var(--text-muted); position: relative; z-index: 2; transition: all 0.3s;}
+        .ripple { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.4); transform: scale(0); animation: rippleEffect 0.6s linear; pointer-events: none; z-index: 0; }
+        @keyframes rippleEffect { to { transform: scale(4); opacity: 0; } }
+        .upload-icon { width: 48px; height: 48px; color: var(--accent-color); margin-bottom: 16px; opacity: 0.9; position: relative; z-index: 2;}
+        .upload-text { font-size: 16px; font-weight: 500; margin-bottom: 8px; position: relative; z-index: 2;}
+        .upload-hint { font-size: 13px; color: var(--text-muted); position: relative; z-index: 2;}
         #fileInput { display: none; }
 
+        .demo-console { width: 100%; background: var(--glass-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--glass-border); border-radius: 28px; padding: 40px; box-shadow: var(--glass-shadow); display: none; flex-direction: column; align-items: center; animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;}
         .console-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid rgba(134, 134, 139, 0.2); }
         .console-title { font-size: 12px; font-weight: 600; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
         .console-dots { display: flex; gap: 6px; }
@@ -172,29 +174,55 @@
         .demo-img { width: 100%; height: auto; display: block; pointer-events: none; }
         .micro-label { margin-top: 16px; font-size: 11px; letter-spacing: 0.15em; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); display: flex;} }
+        .shimmer-container { display: none; width: 100%; margin-top: 40px; }
+        .shimmer-card { width: 100%; aspect-ratio: 4/5; background: var(--shimmer-bg); border-radius: 20px; backdrop-filter: blur(10px); position: relative; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); }
+        .shimmer-card::after { content: ""; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(90deg, transparent, var(--shimmer-highlight), transparent); animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 100% { left: 200%; } }
         
-        .batch-download { margin-top: 24px; width: 100%; padding: 16px; background: var(--accent-color); border: none; border-radius: 16px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 20px var(--accent-glow); transition: all 0.2s; display: none; text-align: center; }
+        .result-container { width: 100%; margin-top: 40px; display: flex; flex-direction: column; gap: 40px; }
+        .result-card { background: var(--glass-bg); backdrop-filter: blur(24px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 24px; box-shadow: var(--glass-shadow); display: flex; flex-direction: column; align-items: center; animation: fadeIn 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); display: flex; } }
+        .result-img-wrapper { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 24px; transform-style: preserve-3d; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .result-img { width: 100%; height: auto; display: block; }
+        .result-footer { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 8px; }
+        .result-index { font-size: 13px; color: var(--text-muted); font-weight: 500; }
+        .download-link { color: var(--accent-color); text-decoration: none; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s; }
+        .download-link:hover { opacity: 0.8; }
+        
+        .batch-download { margin-top: 24px; width: 100%; padding: 16px; background: var(--accent-color); border: none; border-radius: 16px; color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 10px 20px var(--accent-glow); transition: all 0.2s; display: none; text-align: center;}
         .batch-download:hover { transform: translateY(-2px); filter: brightness(1.1); }
         .footer { margin-top: 60px; font-size: 12px; color: var(--text-muted); letter-spacing: 0.05em; }
 
         @media (max-width: 768px) {
             .workspace { flex-direction: column; }
             .app-active .sidebar { width: 100%; }
+            .demo-console { padding: 20px; }
             .demo-area { flex-direction: column; align-items: center; gap: 30px; }
             .demo-col:first-child, .demo-col:last-child { flex: 0 0 auto; width: 100%; max-width: 320px; }
+            .brand-title { font-size: 36px; }
         }
+
+        /* === Toast 错误反馈弹窗 === */
+        #toastContainer { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+        .toast { background: var(--glass-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--glass-border); color: var(--text-main); padding: 14px 24px; border-radius: 16px; font-size: 14px; font-weight: 500; box-shadow: var(--glass-shadow); animation: toastSlideIn 0.4s cubic-bezier(0.25, 1, 0.5, 1), toastFadeOut 0.3s 3s forwards; }
+        .toast.error { border-left: 4px solid #FF453A; }
+        @keyframes toastSlideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastFadeOut { from { opacity: 1; } to { opacity: 0; } }
     </style>
 </head>
 <body>
 
-<div class="aurora-bg"><div class="orb orb-1"></div><div class="orb orb-2"></div></div>
+<div class="aurora-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+</div>
 
 <div class="container" id="appContainer">
     <div style="position: relative;">
         <div class="particle-emitter" id="particleEmitter"></div>
         <h1 class="brand-title">Anan Frame <span class="brand-emoji" id="boopableSnoot" title="Boop me!">🐽</span></h1>
     </div>
+    
     <div class="subtitle">Gallery Quality · Border Studio</div>
 
     <div class="workspace">
@@ -219,80 +247,183 @@
                 <input type="range" class="macos-slider" id="inpRadius" min="0" max="200" value="90" style="--val: 45%;">
             </div>
 
-            <button id="zipBtn" class="batch-download">Download (.zip)</button>
+            <button id="zipBtn" class="batch-download">Download Archive (.zip)</button>
         </div>
 
         <div class="main-stage">
             <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
                 <div class="spotlight"></div>
-                <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a2.25 2.25 0 01-2.25-2.25V6.75A2.25 2.25 0 016.75 4.5h10.5A2.25 2.25 0 0119.5 6.75v10.5a2.25 2.25 0 01-2.25 2.25m-10.5 0h10.5" /></svg>
+                <svg class="upload-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a2.25 2.25 0 01-2.25-2.25V6.75A2.25 2.25 0 016.75 4.5h10.5A2.25 2.25 0 0119.5 6.75v10.5a2.25 2.25 0 01-2.25 2.25m-10.5 0h10.5" />
+                </svg>
                 <div class="upload-text">点击或拖拽图片至此</div>
-                <div class="upload-hint">支持批量上传本地文件 (Jpg, Png 等)</div>
+                <div class="upload-hint">支持批量上传本地文件(Jpg,Png等格式)</div>
                 <input type="file" id="fileInput" accept="image/jpeg, image/png, image/webp" multiple>
             </div>
 
             <div class="demo-console" id="demoConsole">
                 <div class="console-header">
                     <div class="console-title">Live Preview</div>
-                    <div class="console-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+                    <div class="console-dots">
+                        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+                    </div>
                 </div>
                 <div class="demo-area">
                     <div class="demo-col">
-                        <div class="demo-img-wrapper tilt-card"><img id="previewOrig" src="" alt="Original" class="demo-img"></div>
+                        <div class="demo-img-wrapper tilt-card">
+                            <img id="previewOrig" src="" alt="Original" class="demo-img">
+                        </div>
                         <div class="micro-label">Original</div>
                     </div>
                     <div class="demo-col">
-                        <div class="demo-img-wrapper tilt-card"><img id="previewProc" src="" alt="Processed" class="demo-img"></div>
+                        <div class="demo-img-wrapper tilt-card">
+                            <img id="previewProc" src="" alt="Processed" class="demo-img">
+                        </div>
                         <div class="micro-label">Processed <span id="renderIndicator" style="display:none; color:var(--accent-color);"> (Rendering...)</span></div>
                     </div>
                 </div>
             </div>
-        </div>
 
+            <div class="shimmer-container" id="loader">
+                <div class="shimmer-card"></div>
+            </div>
+
+            <div class="result-container" id="resultContainer"></div>
+        </div>
     </div>
+
     <div class="footer">Engineered for Aesthetics</div>
 </div>
 
 <script>
+    // === 🔑 Easter Egg A：Boop the Snoot + 粒子系统逻辑 ===
+    (function() {
+        const snoot = document.getElementById('boopableSnoot');
+        const emitter = document.getElementById('particleEmitter');
+        if (!snoot || !emitter) return;
+        const particleIcons = ['💖', '✨', '💧', '🐽', 'x', 'o']; 
+        const particleCount = 15; 
+        
+        snoot.addEventListener('mousedown', (e) => {
+            snoot.classList.remove('is-booped');
+            void snoot.offsetWidth; 
+            snoot.classList.add('is-booped');
+            createParticleBurst(e.clientX, e.clientY);
+        });
+
+        snoot.addEventListener('animationend', (e) => {
+            if (e.animationName === 'snootBoop') snoot.classList.remove('is-booped');
+        });
+
+        function createParticleBurst() {
+            const rect = emitter.getBoundingClientRect();
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('span');
+                particle.classList.add('boop-particle');
+                particle.textContent = particleIcons[Math.floor(Math.random() * particleIcons.length)]; 
+                particle.style.fontFamily = 'none';
+                emitter.appendChild(particle);
+
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 60 + Math.random() * 90;
+                const xVel = Math.cos(angle) * speed;
+                const yVel = Math.sin(angle) * speed;
+                const gravity = 150 + Math.random() * 50; 
+                const rotation = (Math.random() - 0.5) * 1080; 
+                const scale = 0.5 + Math.random() * 1.2;
+                const lifetime = 0.8 + Math.random() * 0.5; 
+
+                let startTime = performance.now();
+                let lastTime = startTime;
+
+                function animateParticle(timestamp) {
+                    const elapsed = (timestamp - startTime) / 1000;
+                    lastTime = timestamp;
+                    if (elapsed >= lifetime) {
+                        particle.remove(); 
+                        return; 
+                    }
+                    const pProgress = elapsed / lifetime;
+                    const currentOpacity = pProgress < 0.1 ? 1 : 1 - (pProgress - 0.1) / 0.9;
+                    const currentScale = scale * (1 - pProgress * 0.3); 
+                    const dx = xVel * elapsed;
+                    const dy = yVel * elapsed + 0.5 * gravity * Math.pow(elapsed, 2); 
+                    const dRot = rotation * elapsed;
+                    particle.style.transform = `translate(${centerX + dx}px, ${centerY + dy}px) rotate(${dRot}deg) scale(${currentScale})`;
+                    particle.style.opacity = currentOpacity;
+                    requestAnimationFrame(animateParticle);
+                }
+                requestAnimationFrame(animateParticle);
+            }
+        }
+    })();
+
     // === 核心状态与参数 ===
     const PARAMS = { border_scale: 0.09, blur_radius: 50, corner_radius: 90, shadow_blur: 50, shadow_opacity: 0.4 };
-    let currentActiveFile = null; // 用于实时预览的文件
-    let processedFilesData = []; // 存储所有处理后的数据用于下载
+    let currentValidFiles = []; // 全局保存有效文件，方便二次渲染
+    let currentActiveFile = null; // 实时预览使用
+    let processedFilesData = []; 
+
+    // === Toast 提示逻辑 ===
+    function showToast(message, isError = false) {
+        let container = document.getElementById('toastContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toastContainer';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast ${isError ? 'error' : ''}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3300);
+    }
 
     // === DOM 元素 ===
     const appContainer = document.getElementById('appContainer');
     const fileInput = document.getElementById('fileInput');
+    const resultContainer = document.getElementById('resultContainer');
+    const loader = document.getElementById('loader');
     const demoConsole = document.getElementById('demoConsole');
     const zipBtn = document.getElementById('zipBtn');
     const previewOrig = document.getElementById('previewOrig');
     const previewProc = document.getElementById('previewProc');
     const renderIndicator = document.getElementById('renderIndicator');
 
-    // === 🚀 实时参数调节引擎 ===
+    // === 🚀 实时参数调节与双层渲染引擎 ===
     function setupSlider(id, paramKey, suffix, displayId) {
         const slider = document.getElementById(id);
         const display = document.getElementById(displayId);
         
-        // 初始化液态填充
         const updateFill = () => {
             const percent = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
             slider.style.setProperty('--val', `${percent}%`);
         };
         updateFill();
 
-        slider.addEventListener('input', (e) => {
+        // 当鼠标拖动时（input事件）：仅仅更新实时预览框（极速）
+        slider.addEventListener('input', async (e) => {
             const val = parseFloat(e.target.value);
-            // 更新数值显示
             display.textContent = val + suffix;
-            // 更新填充动画
             updateFill();
             
-            // 更新核心参数
             if(paramKey === 'border_scale') PARAMS[paramKey] = val / 100;
             else PARAMS[paramKey] = val;
 
-            // 触发防抖实时渲染
-            triggerRealtimeRender();
+            if (currentActiveFile) {
+                renderIndicator.style.display = 'inline';
+                previewProc.src = await processSingleImage(currentActiveFile);
+                renderIndicator.style.display = 'none';
+            }
+        });
+
+        // 当松开鼠标时（change事件）：静默重新渲染底部的批量卡片
+        slider.addEventListener('change', async () => {
+            if (currentValidFiles.length > 0) {
+                await renderBatchCardsSilently();
+            }
         });
     }
 
@@ -300,61 +431,79 @@
     setupSlider('inpBlur', 'blur_radius', 'px', 'valBlur');
     setupSlider('inpRadius', 'corner_radius', 'px', 'valRadius');
 
-    // 防抖函数，防止滑动过快卡死浏览器
-    let renderTimeout;
-    function triggerRealtimeRender() {
-        if (!currentActiveFile) return;
-        renderIndicator.style.display = 'inline';
-        clearTimeout(renderTimeout);
-        renderTimeout = setTimeout(async () => {
-            const dataUrl = await processSingleImage(currentActiveFile);
-            previewProc.src = dataUrl;
-            
-            // 如果只有一张图，直接更新下载数据
-            if(processedFilesData.length === 1) {
-                processedFilesData[0].data = dataUrl;
-            }
-            renderIndicator.style.display = 'none';
-        }, 150); // 150ms 延迟，极其丝滑
-    }
-
-    // === 上传与布局切换逻辑 ===
-    fileInput.addEventListener('change', handleFiles);
-    const dropZone = document.getElementById('dropZone');
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = "var(--accent-color)"; });
-    dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = "transparent");
-    dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.style.borderColor = "transparent"; if (e.dataTransfer.files.length) handleFiles({target: {files: e.dataTransfer.files}}); });
-
-    async function handleFiles(e) {
-        const files = Array.from(e.target.files).filter(f => f.type.match('image.*'));
-        if (files.length === 0) return;
-
-        // 🚀 核心动画：激活布局！左侧抽屉拉出，上传卡片缩小
-        appContainer.classList.add('app-active');
-        
-        // 显示预览控制台
-        demoConsole.style.display = 'flex';
-        zipBtn.style.display = 'block';
-        zipBtn.textContent = files.length > 1 ? `Download All (${files.length})` : `Download Image`;
-
-        // 选取第一张图作为实时预览的画布
-        currentActiveFile = files[0];
-        previewOrig.src = URL.createObjectURL(currentActiveFile);
-        
-        // 初始化处理
+    async function renderBatchCardsSilently() {
+        if (currentValidFiles.length === 0) return;
+        resultContainer.innerHTML = '';
         processedFilesData = [];
-        previewProc.src = await processSingleImage(currentActiveFile);
-        processedFilesData.push({ name: `anan_${currentActiveFile.name}`, data: previewProc.src, file: currentActiveFile });
-
-        // 如果是批量上传，后台静默处理其余图片（这里为了极致性能，批量处理可在下载时再依据最新参数生成）
-        if (files.length > 1) {
-            for(let i=1; i<files.length; i++) {
-                processedFilesData.push({ name: `anan_${files[i].name}`, file: files[i], data: null });
-            }
+        
+        // 循环使用最新参数重新生成
+        for (let i = 0; i < currentValidFiles.length; i++) {
+            const file = currentValidFiles[i];
+            const resultDataUrl = await processSingleImage(file);
+            const outputName = `anan_${file.name.split('.')[0]}.png`;
+            processedFilesData.push({ name: outputName, data: resultDataUrl, file: file });
+            createResultCard(resultDataUrl, outputName, i + 1, currentValidFiles.length);
         }
     }
 
-    // === 图像处理核心引擎 (包含 Safari 兼容 StackBlur) ===
+    // === 上传与过滤逻辑 ===
+    fileInput.addEventListener('change', handleFiles);
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = "var(--accent-color)"; });
+    dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = "var(--glass-border)");
+    dropZone.addEventListener('drop', (e) => { e.preventDefault(); dropZone.style.borderColor = "var(--glass-border)"; if (e.dataTransfer.files.length) processFiles(e.dataTransfer.files); });
+
+    function handleFiles(e) { if (e.target.files.length) processFiles(e.target.files); }
+
+    async function processFiles(files) { 
+        // 1. 过滤并检查文件
+        const validFiles = [];
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            if (!file.type.match('image.*')) {
+                showToast(`不支持的文件格式: ${file.name}`, true);
+            } else {
+                validFiles.push(file);
+            }
+        }
+        if (validFiles.length === 0) return; 
+
+        currentValidFiles = validFiles;
+
+        // 2. 触发液态空间变身
+        appContainer.classList.add('app-active');
+        demoConsole.style.display = 'flex'; 
+        zipBtn.style.display = 'block'; 
+        zipBtn.textContent = validFiles.length > 1 ? `Download All (${validFiles.length})` : `Download Image`;
+
+        // 3. 设定 Live Preview
+        currentActiveFile = currentValidFiles[0];
+        previewOrig.src = URL.createObjectURL(currentActiveFile);
+        
+        resultContainer.innerHTML = ''; 
+        processedFilesData = []; 
+        loader.style.display = 'block'; 
+
+        // 4. 初次批量渲染
+        for (let i = 0; i < currentValidFiles.length; i++) { 
+            const file = currentValidFiles[i]; 
+            try { 
+                const resultDataUrl = await processSingleImage(file); 
+                const outputName = `anan_${file.name.split('.')[0]}.png`; 
+                processedFilesData.push({ name: outputName, data: resultDataUrl, file: file }); 
+                createResultCard(resultDataUrl, outputName, i + 1, currentValidFiles.length); 
+                
+                // 给 Live Preview 同步第一张图
+                if (i === 0) previewProc.src = resultDataUrl;
+            } catch (err) { 
+                console.error("Error processing:", err); 
+                showToast(`处理失败，请检查图片: ${file.name}`, true);
+            } 
+        } 
+        loader.style.display = 'none'; 
+    } 
+    
+    // === 核心高斯模糊处理引擎 (Safari 兼容版) ===
     function processSingleImage(file) {
         return new Promise((resolve, reject) => {
             const img = new Image();
@@ -365,61 +514,74 @@
                 const baseSize = Math.min(origW, origH);
                 let borderWidth = Math.max(Math.floor(baseSize * PARAMS.border_scale), 1);
                 const newW = origW + (2 * borderWidth), newH = origH + (2 * borderWidth);
-                canvas.width = newW; canvas.height = newH;
+                
+                canvas.width = newW;
+                canvas.height = newH;
 
+                // StackBlur 兼容方案
                 const tempCanvas = document.createElement('canvas');
                 const tempCtx = tempCanvas.getContext('2d');
-                const scaleW = newW + 200, scaleH = newH + 200;
-                tempCanvas.width = scaleW; tempCanvas.height = scaleH;
+                const scaleW = newW + 200;
+                const scaleH = newH + 200;
+                tempCanvas.width = scaleW;
+                tempCanvas.height = scaleH;
+                
                 tempCtx.drawImage(img, 0, 0, scaleW, scaleH);
                 StackBlur.canvasRGBA(tempCanvas, 0, 0, scaleW, scaleH, PARAMS.blur_radius);
                 ctx.drawImage(tempCanvas, -(scaleW - newW) / 2, -(scaleH - newH) / 2);
+                
+                // 绘制阴影
+                ctx.save();
+                ctx.globalAlpha = PARAMS.shadow_opacity;
+                if ('filter' in ctx) {
+                    ctx.filter = `blur(${PARAMS.shadow_blur}px)`;
+                }
+                ctx.fillStyle = "#000000";
+                roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius);
+                ctx.fill();
+                ctx.restore();
 
-                ctx.save(); ctx.globalAlpha = PARAMS.shadow_opacity;
-                if ('filter' in ctx) ctx.filter = `blur(${PARAMS.shadow_blur}px)`;
-                ctx.fillStyle = "#000000"; roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius); ctx.fill(); ctx.restore();
+                // 绘制圆角原图
+                ctx.save();
+                ctx.beginPath();
+                roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius);
+                ctx.clip();
+                ctx.drawImage(img, borderWidth, borderWidth, origW, origH);
+                ctx.restore();
 
-                ctx.save(); ctx.beginPath(); roundRect(ctx, borderWidth, borderWidth, origW, origH, PARAMS.corner_radius); ctx.clip(); ctx.drawImage(img, borderWidth, borderWidth, origW, origH); ctx.restore();
                 resolve(canvas.toDataURL('image/png'));
             };
-            img.onerror = reject; img.src = URL.createObjectURL(file);
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
         });
     }
-
+    
     function roundRect(ctx, x, y, w, h, r) { if (w < 2 * r) r = w / 2; if (h < 2 * r) r = h / 2; ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
 
-    // === 下载逻辑 ===
-    zipBtn.addEventListener('click', async () => {
-        const btnText = zipBtn.textContent;
-        zipBtn.textContent = 'Processing...';
+    function createResultCard(dataUrl, name, index, total) { const card = document.createElement('div'); card.className = 'result-card'; card.innerHTML = ` <div class="result-img-wrapper tilt-card"> <img src="${dataUrl}" class="result-img" alt="Result"> </div> <div class="result-footer"> <span class="result-index">${String(index).padStart(2, '0')} / ${String(total).padStart(2, '0')}</span> <a href="${dataUrl}" download="${name}" class="download-link"> <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /> </svg> Save </a> </div> `; resultContainer.appendChild(card); initTiltEffect(); }
+
+    zipBtn.addEventListener('click', async () => { 
+        if (processedFilesData.length === 0) return;
         
         if (processedFilesData.length === 1) {
-            // 单张直接下载
             saveAs(processedFilesData[0].data, processedFilesData[0].name);
         } else {
-            // 批量下载，按最新参数重新生成所有图
-            if (!window.JSZip) return alert("JSZip failed to load.");
-            const zip = new JSZip();
-            for(let item of processedFilesData) {
-                const finalData = await processSingleImage(item.file);
-                zip.file(item.name, finalData.split(',')[1], {base64: true});
-            }
+            const btnText = zipBtn.textContent;
+            zipBtn.textContent = 'Processing...';
+            if (!window.JSZip) return alert("JSZip failed to load."); 
+            const zip = new JSZip(); 
+            processedFilesData.forEach(file => { zip.file(file.name, file.data.split(',')[1], {base64: true}); }); 
             const content = await zip.generateAsync({type:"blob"});
-            saveAs(content, "Anan_Frames.zip");
+            saveAs(content, "Anan_Frames.zip"); 
+            zipBtn.textContent = btnText;
         }
-        zipBtn.textContent = btnText;
     });
-
-    // === 倾斜交互与彩蛋保留 ===
-    // 磁吸灯
-    dropZone.addEventListener('mousemove', (e) => { const rect = dropZone.getBoundingClientRect(); dropZone.style.setProperty('--x', `${e.clientX - rect.left}px`); dropZone.style.setProperty('--y', `${e.clientY - rect.top}px`); });
-    // 卡片倾斜
-    function initTiltEffect() { document.querySelectorAll('.tilt-card').forEach(card => { card.addEventListener('mousemove', e => { const rect = card.getBoundingClientRect(); const rotX = ((e.clientY - rect.top - rect.height/2) / (rect.height/2)) * -8; const rotY = ((e.clientX - rect.left - rect.width/2) / (rect.width/2)) * 8; card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.02, 1.02, 1.02)`; }); card.addEventListener('mouseleave', () => { card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`; }); }); }
+    
+    // === 交互逻辑维持不变 ===
+    dropZone.addEventListener('mousemove', (e) => { const rect = dropZone.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; dropZone.style.setProperty('--x', `${x}px`); dropZone.style.setProperty('--y', `${y}px`); });
+    dropZone.addEventListener('mousedown', function(e) { const rect = dropZone.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const circle = document.createElement('span'); circle.classList.add('ripple'); circle.style.left = `${x - 50}px`; circle.style.top = `${y - 50}px`; circle.style.width = '100px'; circle.style.height = '100px'; this.appendChild(circle); setTimeout(() => circle.remove(), 600); });
+    function initTiltEffect() { const cards = document.querySelectorAll('.tilt-card'); cards.forEach(card => { card.addEventListener('mousemove', e => { const rect = card.getBoundingClientRect(); const x = e.clientX - rect.left; const y = e.clientY - rect.top; const centerX = rect.width / 2; const centerY = rect.height / 2; const rotateX = ((y - centerY) / centerY) * -8; const rotateY = ((x - centerX) / centerX) * 8; card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`; }); card.addEventListener('mouseleave', () => { card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`; }); }); }
     initTiltEffect();
-    // 猪鼻彩蛋
-    const snoot = document.getElementById('boopableSnoot'), emitter = document.getElementById('particleEmitter');
-    snoot.addEventListener('mousedown', (e) => { snoot.classList.remove('is-booped'); void snoot.offsetWidth; snoot.classList.add('is-booped'); for (let i = 0; i < 15; i++) { const p = document.createElement('span'); p.classList.add('boop-particle'); p.textContent = ['💖', '✨', '💧', '🐽'][Math.floor(Math.random()*4)]; p.style.fontFamily='none'; emitter.appendChild(p); const ang=Math.random()*Math.PI*2, spd=60+Math.random()*90, xv=Math.cos(ang)*spd, yv=Math.sin(ang)*spd, g=150+Math.random()*50, rot=(Math.random()-0.5)*1080, scl=0.5+Math.random()*1.2, lf=0.8+Math.random()*0.5; let st=performance.now(), lt=st; requestAnimationFrame(function anim(t){ const el=(t-st)/1000, dt=(t-lt)/1000; lt=t; if(el>=lf) return p.remove(); const op=el/lf<0.1?1:1-(el/lf-0.1)/0.9, cs=scl*(1-el/lf*0.3), dx=xv*el, dy=yv*el+0.5*g*el*el, dr=rot*el; p.style.transform=`translate(${50+dx}px, ${50+dy}px) rotate(${dr}deg) scale(${cs})`; p.style.opacity=op; requestAnimationFrame(anim); }); } });
-    snoot.addEventListener('animationend', (e) => { if(e.animationName==='snootBoop') snoot.classList.remove('is-booped'); });
 </script>
 </body>
 </html>
